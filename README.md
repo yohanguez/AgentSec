@@ -61,31 +61,85 @@ agentsec scan langgraph \
 - **Autogen** - Find ConversableAgent patterns
 - **n8n** - Parse workflow JSON files
 
-## 📊 Example Report Visualization
+## 📊 Example Report
 
-AgentSec generates interactive HTML reports with visual workflow graphs showing:
-- **Agents** (blue rounded boxes) - AI agents in your workflow
-- **Tools** (yellow circles) - External tools and APIs used
-- **MCP Servers** (purple hexagons) - Model Context Protocol servers
-- **Vulnerabilities** (red indicators) - Security issues detected
+AgentSec generates comprehensive HTML security reports. Here's an example from a multi-agent workflow analysis:
 
-### Sample Multi-Agent Workflow Visualization
+### 📈 Report Statistics
+
+<table>
+<tr>
+<td align="center" width="33%">
+<h3>⚠️ 4</h3>
+<b>Vulnerabilities</b>
+</td>
+<td align="center" width="33%">
+<h3>🤖 3</h3>
+<b>Agents</b>
+</td>
+<td align="center" width="33%">
+<h3>🔧 2</h3>
+<b>Tools</b>
+</td>
+</tr>
+</table>
+
+### 🎨 Workflow Visualization
+
+The report includes an interactive graph showing your complete agent workflow:
 
 ![AgentSec Workflow Visualization](workflow-visualization.svg)
 
-The visualization shows:
-- Agent communication flows and handoffs
-- Tool and MCP server integrations
-- Vulnerability counts on each component
-- Conditional routing and decision points
+**Visual Elements:**
+- 🔵 **Blue Rounded Boxes** - AI Agents (Supervisor, Research Agent, Developer Agent)
+- 🟡 **Yellow Circles** - Tools (DuckDuckGo Search, Python REPL)
+- 🟣 **Purple Hexagons** - MCP Servers (Filesystem, Git, PostgreSQL)
+- 🟢 **Green Circles** - Start/End nodes
+- **Arrows** - Data flow and agent handoffs
+- **(X vuln)** - Vulnerability count on each component
 
-### Generated Report Features
+### 🔍 What's Included in Reports
 
-✅ **Interactive Graph** - Visual workflow with all components
-✅ **Vulnerability Details** - OWASP/CWE mappings and remediation steps
-✅ **Agent Analysis** - System prompts and model configurations
-✅ **Tool Risk Assessment** - Category-based security analysis
-✅ **Export Options** - HTML reports and JSON exports
+#### 1. **Workflow Graph**
+Visual representation of all agents, tools, and their connections
+
+#### 2. **Agent Details**
+```
+🤖 Research Agent (gpt-4-turbo)
+├─ System Prompt: "You are a Research Agent..."
+├─ Tools: Web Search, Database Query, Git Access
+└─ Guardrails: ❌ Not Configured
+```
+
+#### 3. **Tool Analysis**
+```
+🔧 DuckDuckGoSearchRun (WEB_SEARCH)
+└─ ⚠️  SSRF Vulnerability (2 vulns)
+    ├─ OWASP: LLM07
+    ├─ CWE: CWE-918
+    └─ Remediation: Validate URLs, implement allow-lists
+```
+
+#### 4. **MCP Server Security**
+```
+🔌 MCP PostgreSQL Server (DATABASE)
+└─ ⚠️  SQL Injection Risk (1 vuln)
+    ├─ OWASP: A03:2021
+    ├─ CWE: CWE-89
+    └─ Remediation: Use parameterized queries
+```
+
+#### 5. **Vulnerability Summary**
+- Detailed descriptions of each vulnerability
+- OWASP Top 10 and CWE mappings
+- Step-by-step remediation guidance
+- Risk severity ratings
+
+### 📋 Report Export Options
+
+✅ **HTML Report** - Beautiful, interactive web page with graphs
+✅ **JSON Export** - Machine-readable format for CI/CD integration
+✅ **SVG Graphs** - Standalone visualizations
 
 ## 🔍 What AgentSec Detects
 
