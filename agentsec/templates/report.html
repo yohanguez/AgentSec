@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgentSec Security Report - {{ framework }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        header {
+            border-bottom: 3px solid #2874A6;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #2874A6;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .metadata {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-card.vulnerabilities {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .stat-card.agents {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .stat-card.tools {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .stat-number {
+            font-size: 3em;
+            font-weight: bold;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            text-transform: uppercase;
+            opacity: 0.9;
+        }
+
+        h2 {
+            color: #2874A6;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .graph-container {
+            background: white;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        .graph-container svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2874A6;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .vulnerability {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+
+        .vulnerability h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .vulnerability p {
+            margin: 10px 0;
+        }
+
+        .framework-mapping {
+            background: #e7f3ff;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-size: 0.9em;
+        }
+
+        .remediation {
+            background: #d4edda;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+
+        .remediation h5 {
+            color: #155724;
+            margin-bottom: 10px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .badge.category {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .badge.vuln-count {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .badge.vuln-count.safe {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .expandable {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .expandable:hover {
+            background: #f0f0f0;
+        }
+
+        .prompt-text {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+        }
+
+        .legend {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 30px;
+            height: 20px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+            .container {
+                box-shadow: none;
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 AgentSec Security Report</h1>
+            <div class="metadata">
+                <p><strong>Framework:</strong> {{ framework }}</p>
+                <p><strong>Generated:</strong> {{ timestamp }}</p>
+                <p><strong>Scanner Version:</strong> {{ version }}</p>
+            </div>
+        </header>
+
+        <section class="stats">
+            <div class="stat-card vulnerabilities">
+                <span class="stat-number">{{ total_vulnerabilities }}</span>
+                <span class="stat-label">Vulnerabilities</span>
+            </div>
+            <div class="stat-card agents">
+                <span class="stat-number">{{ total_agents }}</span>
+                <span class="stat-label">Agents</span>
+            </div>
+            <div class="stat-card tools">
+                <span class="stat-number">{{ total_tools }}</span>
+                <span class="stat-label">Tools</span>
+            </div>
+        </section>
+
+        <section>
+            <h2>📊 Workflow Visualization</h2>
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #5DADE2;"></div>
+                    <span>Agent</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #F8B400;"></div>
+                    <span>Tool</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #AF7AC5;"></div>
+                    <span>MCP Server</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #52BE80;"></div>
+                    <span>Start/End</span>
+                </div>
+            </div>
+            <div class="graph-container">
+                {{ graph_svg | safe }}
+            </div>
+        </section>
+
+        {% if agents %}
+        <section>
+            <h2>🤖 Agents</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Agent Name</th>
+                        <th>LLM Model</th>
+                        <th>System Prompt</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for agent in agents %}
+                    <tr>
+                        <td><strong>{{ agent.name }}</strong></td>
+                        <td>{{ agent.llm_model or "N/A" }}</td>
+                        <td>
+                            {% if agent.system_prompt %}
+                            <div class="prompt-text">{{ agent.system_prompt[:200] }}{% if agent.system_prompt|length > 200 %}...{% endif %}</div>
+                            {% else %}
+                            <em>No system prompt</em>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+        {% endif %}
+
+        {% if tools %}
+        <section>
+            <h2>🔧 Tools</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tool Name</th>
+                        <th>Category</th>
+                        <th>Description</th>
+                        <th>Vulnerabilities</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tool in tools %}
+                    <tr>
+                        <td><strong>{{ tool.name }}</strong></td>
+                        <td><span class="badge category">{{ tool.category.value }}</span></td>
+                        <td>{{ tool.description or "N/A" }}</td>
+                        <td>
+                            <span class="badge vuln-count {% if tool.vulnerabilities|length == 0 %}safe{% endif %}">
+                                {{ tool.vulnerabilities|length }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+        {% endif %}
+
+        {% if has_vulnerabilities %}
+        <section>
+            <h2>⚠️ Vulnerability Details</h2>
+            {% for tool in tools %}
+                {% if tool.vulnerabilities %}
+                <h3>{{ tool.name }}</h3>
+                {% for vuln in tool.vulnerabilities %}
+                <div class="vulnerability">
+                    <h4>{{ vuln.name }}</h4>
+                    <p><strong>Description:</strong> {{ vuln.description }}</p>
+
+                    {% if vuln.security_framework_mapping %}
+                    <div class="framework-mapping">
+                        <strong>Security Framework Mappings:</strong>
+                        <ul>
+                            {% for framework, mapping in vuln.security_framework_mapping.items() %}
+                            <li>{{ framework }}: {{ mapping }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    {% if vuln.remediation %}
+                    <div class="remediation">
+                        <h5>🛡️ Remediation Steps:</h5>
+                        <pre style="white-space: pre-wrap; font-family: inherit;">{{ vuln.remediation }}</pre>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% endif %}
+            {% endfor %}
+        </section>
+        {% endif %}
+
+        {% if mcp_servers %}
+        <section>
+            <h2>🔌 MCP Servers</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Server Name</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for server in mcp_servers %}
+                    <tr>
+                        <td><strong>{{ server.name }}</strong></td>
+                        <td>{{ server.description or "External service integration" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <p><em>Note: MCP servers provide external capabilities and should be reviewed for appropriate access controls.</em></p>
+        </section>
+        {% endif %}
+
+        <footer>
+            <p>Generated by AgentSec v{{ version }}</p>
+            <p>Static Security Analysis for AI Agent Workflows</p>
+        </footer>
+    </div>
+</body>
+</html>

@@ -1,0 +1,153 @@
+{
+  "vulnerabilities": [
+    {
+      "type": "tool",
+      "match_strategy": "category",
+      "match_value": "web_search",
+      "vulnerabilities": [
+        {
+          "name": "Server-Side Request Forgery (SSRF)",
+          "description": "Web search tools can be manipulated to make requests to internal services or restricted endpoints, potentially exposing sensitive information or accessing unauthorized resources.",
+          "security_framework_mapping": {
+            "OWASP_LLM": "LLM09 - Improper Output Handling",
+            "CWE": "CWE-918"
+          },
+          "remediation": "1. Validate and sanitize all URLs before making requests\n2. Implement allowlist of permitted domains\n3. Disable redirects or validate redirect targets\n4. Use network segmentation to isolate search services\n5. Monitor and log all external requests"
+        },
+        {
+          "name": "Information Disclosure",
+          "description": "Search results may contain sensitive information that should not be exposed to the agent or end users.",
+          "security_framework_mapping": {
+            "OWASP_LLM": "LLM06 - Sensitive Information Disclosure",
+            "CWE": "CWE-200"
+          },
+          "remediation": "1. Implement content filtering on search results\n2. Redact sensitive patterns (API keys, credentials, PII)\n3. Review search query scope and permissions\n4. Log search queries for audit purposes"
+        }
+      ]
+    },
+    {
+      "type": "tool",
+      "match_strategy": "category",
+      "match_value": "code_interpreter",
+      "vulnerabilities": [
+        {
+          "name": "Remote Code Execution (RCE)",
+          "description": "Code interpreters allow arbitrary code execution which can be exploited to run malicious commands, access sensitive data, or compromise the host system.",
+          "security_framework_mapping": {
+            "OWASP_LLM": "LLM07 - Insecure Plugin Design",
+            "CWE": "CWE-94"
+          },
+          "remediation": "1. Run code in isolated sandboxes with limited permissions\n2. Implement strict resource limits (CPU, memory, disk)\n3. Disable dangerous modules and system calls\n4. Validate and sanitize all code inputs\n5. Use read-only filesystem where possible\n6. Implement timeout mechanisms"
+        },
+        {
+          "name": "Sandbox Escape",
+          "description": "Attackers may exploit vulnerabilities in the sandbox environment to break out and access the underlying system.",
+          "security_framework_mapping": {
+            "OWASP_LLM": "LLM07 - Insecure Plugin Design",
+            "CWE": "CWE-265"
+          },
+          "remediation": "1. Use container-based isolation (Docker, gVisor)\n2. Keep sandbox environment updated with security patches\n3. Minimize available system libraries and binaries\n4. Monitor for suspicious system calls\n5. Implement multiple layers of isolation"
+        }
+      ]
+    },
+    {
+      "type": "tool",
+      "match_strategy": "category",
+      "match_value": "document_loader",
+      "vulnerabilities": [
+        {
+          "name": "Path Traversal",
+          "description": "Document loaders may be exploited to access files outside the intended directory using path traversal techniques (../ sequences).",
+          "security_framework_mapping": {
+            "OWASP_LLM": "LLM07 - Insecure Plugin Design",
+            "CWE": "CWE-22"
+          },
+          "remediation": "1. Validate and sanitize all file paths\n2. Use absolute paths and check against allowlist\n3. Reject paths containing ../ or similar patterns\n4. Implement chroot or similar path restrictions\n5. Run file operations with minimal privileges"
+        },
+        {
+          "name": "Arbitrary File Read",
+          "description": "File reading tools can be manipulated to access sensitive files like credentials, configuration files, or system files.",
+          "security_framework_mapping": {
+            "OWASP_LLM": "LLM06 - Sensitive Information Disclosure",
+            "CWE": "CWE-73"
+          },
+          "remediation": "1. Implement file access controls and permissions\n2. Maintain allowlist of accessible directories\n3. Deny access to sensitive system paths (/etc/passwd, .env, etc.)\n4. Log all file access attempts\n5. Use principle of least privilege"
+        }
+      ]
+    },
+    {
+      "type": "tool",
+      "match_strategy": "category",
+      "match_value": "llm",
+      "vulnerabilities": [
+        {
+          "name": "Prompt Injection",
+          "description": "LLM tools can be exploited through carefully crafted prompts that override system instructions or extract sensitive information.",
+          "security_framework_mapping": {
+            "OWASP_LLM": "LLM01 - Prompt Injection",
+            "CWE": "CWE-77"
+          },
+          "remediation": "1. Implement strong system prompt boundaries\n2. Use prompt templates with clear separations\n3. Validate and sanitize user inputs\n4. Implement guardrails and content filtering\n5. Monitor for prompt injection patterns\n6. Use separate LLM instances for different trust levels"
+        },
+        {
+          "name": "Model Jailbreaking",
+          "description": "Attackers may bypass model safety measures through sophisticated prompt techniques to generate harmful or unauthorized content.",
+          "security_framework_mapping": {
+            "OWASP_LLM": "LLM01 - Prompt Injection",
+            "CWE": "CWE-693"
+          },
+          "remediation": "1. Use models with strong safety guardrails\n2. Implement output validation and filtering\n3. Monitor for known jailbreak patterns\n4. Rate limit requests per user\n5. Implement human review for sensitive operations"
+        }
+      ]
+    },
+    {
+      "type": "tool",
+      "match_strategy": "category",
+      "match_value": "database",
+      "vulnerabilities": [
+        {
+          "name": "SQL Injection",
+          "description": "Database tools may be vulnerable to SQL injection attacks if queries are constructed from unsanitized user input.",
+          "security_framework_mapping": {
+            "OWASP_LLM": "LLM07 - Insecure Plugin Design",
+            "CWE": "CWE-89"
+          },
+          "remediation": "1. Use parameterized queries exclusively\n2. Never construct SQL from string concatenation\n3. Implement strict input validation\n4. Use least-privilege database accounts\n5. Enable query logging and monitoring\n6. Implement read-only connections where possible"
+        },
+        {
+          "name": "Data Exfiltration",
+          "description": "Database access tools can be exploited to extract sensitive data that should not be accessible to the agent.",
+          "security_framework_mapping": {
+            "OWASP_LLM": "LLM06 - Sensitive Information Disclosure",
+            "CWE": "CWE-359"
+          },
+          "remediation": "1. Implement row-level security policies\n2. Use database views to limit data access\n3. Encrypt sensitive columns\n4. Monitor and alert on bulk data queries\n5. Implement query result size limits"
+        }
+      ]
+    },
+    {
+      "type": "tool",
+      "match_strategy": "name",
+      "match_value": "DuckDuckGoSearchRun",
+      "vulnerabilities": []
+    },
+    {
+      "type": "tool",
+      "match_strategy": "name",
+      "match_value": "TavilySearchResults",
+      "vulnerabilities": []
+    },
+    {
+      "type": "tool",
+      "match_strategy": "name",
+      "match_value": "PythonREPL",
+      "vulnerabilities": []
+    },
+    {
+      "type": "tool",
+      "match_strategy": "name",
+      "match_value": "FileReadTool",
+      "vulnerabilities": []
+    }
+  ]
+}

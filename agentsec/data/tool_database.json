@@ -1,0 +1,70 @@
+{
+  "tools": {
+    "DuckDuckGoSearchRun": {
+      "display_name": "DuckDuckGo Search",
+      "category": "web_search",
+      "description": "Web search using DuckDuckGo API",
+      "framework": "langchain_community"
+    },
+    "TavilySearchResults": {
+      "display_name": "Tavily Search",
+      "category": "web_search",
+      "description": "AI-optimized search using Tavily API",
+      "framework": "langchain_tavily"
+    },
+    "SerperDevTool": {
+      "display_name": "Serper Search",
+      "category": "web_search",
+      "description": "Google Search via Serper API",
+      "framework": "crewai"
+    },
+    "PythonREPL": {
+      "display_name": "Python REPL",
+      "category": "code_interpreter",
+      "description": "Execute Python code in a REPL environment",
+      "framework": "langchain_experimental"
+    },
+    "PythonAstREPLTool": {
+      "display_name": "Python AST REPL",
+      "category": "code_interpreter",
+      "description": "Execute Python code with AST parsing",
+      "framework": "langchain"
+    },
+    "FileReadTool": {
+      "display_name": "File Reader",
+      "category": "document_loader",
+      "description": "Read files from the filesystem",
+      "framework": "crewai"
+    },
+    "DirectoryReadTool": {
+      "display_name": "Directory Reader",
+      "category": "document_loader",
+      "description": "List and read directory contents",
+      "framework": "crewai"
+    },
+    "PDFLoader": {
+      "display_name": "PDF Loader",
+      "category": "document_loader",
+      "description": "Load and parse PDF documents",
+      "framework": "langchain"
+    },
+    "ChatOpenAI": {
+      "display_name": "OpenAI Chat",
+      "category": "llm",
+      "description": "OpenAI GPT chat model",
+      "framework": "langchain_openai"
+    },
+    "ChatAnthropic": {
+      "display_name": "Anthropic Claude",
+      "category": "llm",
+      "description": "Anthropic Claude chat model",
+      "framework": "langchain_anthropic"
+    },
+    "SQLDatabaseToolkit": {
+      "display_name": "SQL Database",
+      "category": "database",
+      "description": "SQL database query and manipulation",
+      "framework": "langchain"
+    }
+  }
+}

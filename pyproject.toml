@@ -1,0 +1,53 @@
+[tool.poetry]
+name = "agentsec"
+version = "1.0.0"
+description = "Static security analysis for AI agent workflows"
+authors = ["Your Name <your.email@example.com>"]
+readme = "README.md"
+packages = [{include = "agentsec"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pydantic = "^2.0.0"
+typer = "^0.9.0"
+jinja2 = "^3.1.0"
+pyyaml = "^6.0"
+pydot = "^2.0.0"
+rich = {version = "^13.0.0", optional = true}
+openai = {version = "^1.0.0", optional = true}
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.0.0"
+black = "^23.0.0"
+ruff = "^0.1.0"
+mypy = "^1.0.0"
+
+[tool.poetry.extras]
+prompt-hardening = ["openai"]
+rich-output = ["rich"]
+all = ["openai", "rich"]
+
+[tool.poetry.scripts]
+agentsec = "agentsec.cli.main:app"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 100
+target-version = ['py39']
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+
+[[tool.mypy.overrides]]
+module = "agentsec.*"
+ignore_missing_imports = true
