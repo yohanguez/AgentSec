@@ -1,0 +1,150 @@
+<svg width="668pt" height="395pt"
+ viewBox="0.00 0.00 668.00 395.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 390.78)">
+<title>G</title>
+<polygon fill="white" stroke="none" points="-4,4 -4,-390.78 664.3,-390.78 664.3,4 -4,4"/>
+<!-- start -->
+<g id="node1" class="node">
+<title>start</title>
+<ellipse fill="#52be80" stroke="#27ae60" cx="319.68" cy="-358.22" rx="28.56" ry="28.56"/>
+<text xml:space="preserve" text-anchor="middle" x="319.68" y="-354.72" font-family="Arial" font-size="10.00">START</text>
+</g>
+<!-- supervisor -->
+<g id="node2" class="node">
+<title>supervisor</title>
+<path fill="#5dade2" stroke="#2874a6" d="M338.93,-292.66C338.93,-292.66 300.43,-292.66 300.43,-292.66 294.43,-292.66 288.43,-286.66 288.43,-280.66 288.43,-280.66 288.43,-268.66 288.43,-268.66 288.43,-262.66 294.43,-256.66 300.43,-256.66 300.43,-256.66 338.93,-256.66 338.93,-256.66 344.93,-256.66 350.93,-262.66 350.93,-268.66 350.93,-268.66 350.93,-280.66 350.93,-280.66 350.93,-286.66 344.93,-292.66 338.93,-292.66"/>
+<text xml:space="preserve" text-anchor="middle" x="319.68" y="-271.16" font-family="Arial" font-size="10.00">Supervisor</text>
+</g>
+<!-- start&#45;&gt;supervisor -->
+<g id="edge1" class="edge">
+<title>start&#45;&gt;supervisor</title>
+<path fill="none" stroke="black" d="M319.68,-329.61C319.68,-321.41 319.68,-312.42 319.68,-304.16"/>
+<polygon fill="black" stroke="black" points="323.18,-304.29 319.68,-294.29 316.18,-304.29 323.18,-304.29"/>
+</g>
+<!-- research_agent -->
+<g id="node3" class="node">
+<title>research_agent</title>
+<path fill="#5dade2" stroke="#2874a6" d="M350.56,-219.66C350.56,-219.66 288.81,-219.66 288.81,-219.66 282.81,-219.66 276.81,-213.66 276.81,-207.66 276.81,-207.66 276.81,-195.66 276.81,-195.66 276.81,-189.66 282.81,-183.66 288.81,-183.66 288.81,-183.66 350.56,-183.66 350.56,-183.66 356.56,-183.66 362.56,-189.66 362.56,-195.66 362.56,-195.66 362.56,-207.66 362.56,-207.66 362.56,-213.66 356.56,-219.66 350.56,-219.66"/>
+<text xml:space="preserve" text-anchor="middle" x="319.68" y="-198.16" font-family="Arial" font-size="10.00">Research Agent</text>
+</g>
+<!-- supervisor&#45;&gt;research_agent -->
+<g id="edge2" class="edge">
+<title>supervisor&#45;&gt;research_agent</title>
+<path fill="none" stroke="black" d="M319.68,-256.47C319.68,-248.88 319.68,-239.76 319.68,-231.2"/>
+<polygon fill="black" stroke="black" points="323.18,-231.2 319.68,-221.2 316.18,-231.2 323.18,-231.2"/>
+</g>
+<!-- developer_agent -->
+<g id="node4" class="node">
+<title>developer_agent</title>
+<path fill="#5dade2" stroke="#2874a6" d="M501.68,-132.53C501.68,-132.53 437.68,-132.53 437.68,-132.53 431.68,-132.53 425.68,-126.53 425.68,-120.53 425.68,-120.53 425.68,-108.53 425.68,-108.53 425.68,-102.53 431.68,-96.53 437.68,-96.53 437.68,-96.53 501.68,-96.53 501.68,-96.53 507.68,-96.53 513.68,-102.53 513.68,-108.53 513.68,-108.53 513.68,-120.53 513.68,-120.53 513.68,-126.53 507.68,-132.53 501.68,-132.53"/>
+<text xml:space="preserve" text-anchor="middle" x="469.68" y="-111.03" font-family="Arial" font-size="10.00">Developer Agent</text>
+</g>
+<!-- research_agent&#45;&gt;developer_agent -->
+<g id="edge6" class="edge">
+<title>research_agent&#45;&gt;developer_agent</title>
+<path fill="none" stroke="black" d="M362.9,-194.53C385.89,-189.62 413.66,-180.93 434.68,-165.66 443.07,-159.56 450.16,-150.81 455.72,-142.32"/>
+<polygon fill="black" stroke="black" points="458.59,-144.33 460.74,-133.95 452.59,-140.72 458.59,-144.33"/>
+<text xml:space="preserve" text-anchor="middle" x="464.78" y="-157.11" font-family="Arial" font-size="9.00">has_data</text>
+</g>
+<!-- tool_search -->
+<g id="node5" class="node">
+<title>tool_search</title>
+<ellipse fill="#f8b400" stroke="#d68910" cx="87.68" cy="-114.53" rx="87.68" ry="22.63"/>
+<text xml:space="preserve" text-anchor="middle" x="87.68" y="-117.03" font-family="Arial" font-size="10.00">DuckDuckGoSearchRun</text>
+<text xml:space="preserve" text-anchor="middle" x="87.68" y="-105.03" font-family="Arial" font-size="10.00">(2 vuln)</text>
+</g>
+<!-- research_agent&#45;&gt;tool_search -->
+<g id="edge3" class="edge">
+<title>research_agent&#45;&gt;tool_search</title>
+<path fill="none" stroke="black" d="M276.58,-191.27C250.94,-185.15 218.01,-176.32 189.68,-165.66 170.85,-158.57 150.83,-149.17 133.56,-140.43"/>
+<polygon fill="black" stroke="black" points="135.59,-137.54 125.09,-136.08 132.39,-143.76 135.59,-137.54"/>
+</g>
+<!-- mcp_git -->
+<g id="node8" class="node">
+<title>mcp_git</title>
+<polygon fill="#af7ac5" stroke="#7d3c98" points="281.22,-22.7 251.45,-40.7 191.91,-40.7 162.14,-22.7 191.91,-4.7 251.45,-4.7 281.22,-22.7"/>
+<text xml:space="preserve" text-anchor="middle" x="221.68" y="-19.2" font-family="Arial" font-size="10.00">MCP Git Server</text>
+</g>
+<!-- research_agent&#45;&gt;mcp_git -->
+<g id="edge5" class="edge">
+<title>research_agent&#45;&gt;mcp_git</title>
+<path fill="none" stroke="black" d="M276.44,-183.88C256.3,-173.63 234.26,-158.35 222.68,-137.16 208.46,-111.13 210.62,-76.47 214.81,-52.34"/>
+<polygon fill="black" stroke="black" points="218.24,-53.08 216.75,-42.59 211.37,-51.71 218.24,-53.08"/>
+</g>
+<!-- mcp_database -->
+<g id="node9" class="node">
+<title>mcp_database</title>
+<polygon fill="#af7ac5" stroke="#7d3c98" points="407.34,-114.53 363.51,-132.53 275.85,-132.53 232.02,-114.53 275.85,-96.53 363.51,-96.53 407.34,-114.53"/>
+<text xml:space="preserve" text-anchor="middle" x="319.68" y="-111.03" font-family="Arial" font-size="10.00">MCP PostgreSQL Server</text>
+</g>
+<!-- research_agent&#45;&gt;mcp_database -->
+<g id="edge4" class="edge">
+<title>research_agent&#45;&gt;mcp_database</title>
+<path fill="none" stroke="black" d="M319.68,-183.43C319.68,-172.2 319.68,-157.26 319.68,-144.26"/>
+<polygon fill="black" stroke="black" points="323.18,-144.54 319.68,-134.54 316.18,-144.54 323.18,-144.54"/>
+</g>
+<!-- developer_agent&#45;&gt;research_agent -->
+<g id="edge10" class="edge">
+<title>developer_agent&#45;&gt;research_agent</title>
+<path fill="none" stroke="black" d="M427.86,-132.98C424.1,-134.44 420.33,-135.85 416.68,-137.16 391.27,-146.26 381.24,-140.33 358.68,-155.16 350.86,-160.3 343.71,-167.45 337.74,-174.56"/>
+<polygon fill="black" stroke="black" points="335.17,-172.17 331.77,-182.2 340.68,-176.48 335.17,-172.17"/>
+<text xml:space="preserve" text-anchor="middle" x="394.68" y="-157.11" font-family="Arial" font-size="9.00">needs_more_info</text>
+</g>
+<!-- tool_python -->
+<g id="node6" class="node">
+<title>tool_python</title>
+<ellipse fill="#f8b400" stroke="#d68910" cx="608.68" cy="-22.7" rx="51.62" ry="22.63"/>
+<text xml:space="preserve" text-anchor="middle" x="608.68" y="-25.2" font-family="Arial" font-size="10.00">PythonREPL</text>
+<text xml:space="preserve" text-anchor="middle" x="608.68" y="-13.2" font-family="Arial" font-size="10.00">(2 vuln)</text>
+</g>
+<!-- developer_agent&#45;&gt;tool_python -->
+<g id="edge7" class="edge">
+<title>developer_agent&#45;&gt;tool_python</title>
+<path fill="none" stroke="black" d="M496.48,-96.21C517.6,-82.56 547.32,-63.36 570.86,-48.14"/>
+<polygon fill="black" stroke="black" points="572.76,-51.08 579.26,-42.71 568.96,-45.2 572.76,-51.08"/>
+</g>
+<!-- mcp_filesystem -->
+<g id="node7" class="node">
+<title>mcp_filesystem</title>
+<polygon fill="#af7ac5" stroke="#7d3c98" points="538.7,-22.7 496.69,-40.7 412.67,-40.7 370.66,-22.7 412.67,-4.7 496.69,-4.7 538.7,-22.7"/>
+<text xml:space="preserve" text-anchor="middle" x="454.68" y="-19.2" font-family="Arial" font-size="10.00">MCP Filesystem Server</text>
+</g>
+<!-- developer_agent&#45;&gt;mcp_filesystem -->
+<g id="edge8" class="edge">
+<title>developer_agent&#45;&gt;mcp_filesystem</title>
+<path fill="none" stroke="black" d="M466.79,-96.21C464.71,-83.78 461.87,-66.75 459.46,-52.32"/>
+<polygon fill="black" stroke="black" points="462.91,-51.75 457.81,-42.46 456.01,-52.9 462.91,-51.75"/>
+</g>
+<!-- developer_agent&#45;&gt;mcp_git -->
+<g id="edge9" class="edge">
+<title>developer_agent&#45;&gt;mcp_git</title>
+<path fill="none" stroke="black" d="M427.52,-96.1C423.86,-94.65 420.21,-93.24 416.68,-91.9 367.17,-73.15 309.92,-53.35 270.32,-39.94"/>
+<polygon fill="black" stroke="black" points="271.66,-36.7 261.07,-36.82 269.42,-43.33 271.66,-36.7"/>
+</g>
+<!-- end -->
+<g id="node10" class="node">
+<title>end</title>
+<ellipse fill="#52be80" stroke="#27ae60" cx="329.68" cy="-22.7" rx="22.7" ry="22.7"/>
+<text xml:space="preserve" text-anchor="middle" x="329.68" y="-19.2" font-family="Arial" font-size="10.00">END</text>
+</g>
+<!-- developer_agent&#45;&gt;end -->
+<g id="edge13" class="edge">
+<title>developer_agent&#45;&gt;end</title>
+<path fill="none" stroke="black" d="M441.55,-96.14C419.66,-82.52 388.58,-63 361.68,-45.4 360.31,-44.51 358.91,-43.58 357.5,-42.65"/>
+<polygon fill="black" stroke="black" points="359.74,-39.93 349.48,-37.27 355.84,-45.75 359.74,-39.93"/>
+<text xml:space="preserve" text-anchor="middle" x="424.7" y="-65.35" font-family="Arial" font-size="9.00">complete</text>
+</g>
+<!-- tool_search&#45;&gt;supervisor -->
+<g id="edge11" class="edge">
+<title>tool_search&#45;&gt;supervisor</title>
+<path fill="none" stroke="black" d="M118.04,-136.22C161.1,-165.57 239.7,-219.14 285,-250.02"/>
+<polygon fill="black" stroke="black" points="282.93,-252.84 293.16,-255.58 286.87,-247.06 282.93,-252.84"/>
+</g>
+<!-- tool_python&#45;&gt;supervisor -->
+<g id="edge12" class="edge">
+<title>tool_python&#45;&gt;supervisor</title>
+<path fill="none" stroke="black" d="M594.84,-44.97C578.88,-68.7 551.18,-107.64 522.68,-137.16 474.47,-187.07 405.1,-228.88 361.22,-252.59"/>
+<polygon fill="black" stroke="black" points="359.7,-249.44 352.52,-257.23 362.99,-255.61 359.7,-249.44"/>
+</g>
+</g>
+</svg>
