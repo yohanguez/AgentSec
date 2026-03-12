@@ -65,6 +65,14 @@ agentsec scan langgraph \
 
 AgentSec generates comprehensive HTML security reports. Here's an example from a multi-agent workflow analysis:
 
+---
+
+### 📄 [**➡️ CLICK HERE TO VIEW FULL REPORT EXAMPLE**](https://github.com/yohanguez/AgentSec/blob/main/example-report.html) ⬅️
+
+*Download and open the HTML file to see the complete interactive report*
+
+---
+
 ### 📈 Report Statistics
 
 <table>
@@ -98,42 +106,51 @@ The report includes an interactive graph showing your complete agent workflow:
 - **Arrows** - Data flow and agent handoffs
 - **(X vuln)** - Vulnerability count on each component
 
-### 🔍 What's Included in Reports
+### 🔍 What's Included in the Report
 
-#### 1. **Workflow Graph**
-Visual representation of all agents, tools, and their connections
+The full report includes:
 
-#### 2. **Agent Details**
-```
-🤖 Research Agent (gpt-4-turbo)
-├─ System Prompt: "You are a Research Agent..."
-├─ Tools: Web Search, Database Query, Git Access
-└─ Guardrails: ❌ Not Configured
-```
+#### 1. **📊 Workflow Visualization**
+Interactive graph showing all agents, tools, MCP servers, and their connections
 
-#### 3. **Tool Analysis**
-```
-🔧 DuckDuckGoSearchRun (WEB_SEARCH)
-└─ ⚠️  SSRF Vulnerability (2 vulns)
-    ├─ OWASP: LLM07
-    ├─ CWE: CWE-918
-    └─ Remediation: Validate URLs, implement allow-lists
-```
+#### 2. **🤖 Agent Details**
+Complete information about each agent:
+- **Supervisor** (gpt-4) - Coordinates multiple specialized agents
+- **Research Agent** (gpt-4-turbo) - Gathers information from web and databases
+- **Developer Agent** (gpt-4-turbo) - Writes code and manages files
+- Full system prompts and configurations
 
-#### 4. **MCP Server Security**
-```
-🔌 MCP PostgreSQL Server (DATABASE)
-└─ ⚠️  SQL Injection Risk (1 vuln)
-    ├─ OWASP: A03:2021
-    ├─ CWE: CWE-89
-    └─ Remediation: Use parameterized queries
-```
+#### 3. **🔧 Tool Vulnerability Analysis**
 
-#### 5. **Vulnerability Summary**
-- Detailed descriptions of each vulnerability
-- OWASP Top 10 and CWE mappings
-- Step-by-step remediation guidance
-- Risk severity ratings
+**DuckDuckGoSearchRun** (2 vulnerabilities)
+- ⚠️ **Server-Side Request Forgery (SSRF)**
+  - OWASP: LLM09 - Improper Output Handling
+  - CWE: CWE-918
+  - Remediation: Validate URLs, implement domain allowlists, disable redirects
+
+- ⚠️ **Information Disclosure**
+  - OWASP: LLM06 - Sensitive Information Disclosure
+  - CWE: CWE-200
+  - Remediation: Filter search results, redact sensitive patterns
+
+**PythonREPL** (2 vulnerabilities)
+- ⚠️ **Remote Code Execution (RCE)**
+  - OWASP: LLM07 - Insecure Plugin Design
+  - CWE: CWE-94
+  - Remediation: Use sandboxes, implement resource limits, validate inputs
+
+- ⚠️ **Sandbox Escape**
+  - CWE: CWE-693
+  - Remediation: Regular updates, minimize attack surface, monitor behavior
+
+#### 4. **🔌 MCP Server Analysis**
+Security assessment of Model Context Protocol servers:
+- MCP Filesystem Server
+- MCP Git Server
+- MCP PostgreSQL Server
+
+#### 5. **🛡️ Detailed Remediation**
+Step-by-step guidance for each vulnerability with actionable security controls
 
 ### 📋 Report Export Options
 
