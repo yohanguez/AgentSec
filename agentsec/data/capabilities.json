@@ -1,0 +1,61 @@
+{
+  "_comment": "Capability profiles for known tools. Resolution order: exact name -> category -> AST signature fallback (see agentsec/audit/signatures.py). trust=untrusted + is_source=true marks a node that introduces attacker-influenceable data. data_class=private marks access to sensitive data.",
+
+  "by_name": {
+    "PythonREPLTool": {"capabilities": ["code_exec"], "data_class": "public"},
+    "PythonREPL": {"capabilities": ["code_exec"], "data_class": "public"},
+    "PythonAstREPLTool": {"capabilities": ["code_exec"], "data_class": "public"},
+    "ShellTool": {"capabilities": ["shell_exec"], "data_class": "public"},
+    "BashProcess": {"capabilities": ["shell_exec"], "data_class": "public"},
+    "Terminal": {"capabilities": ["shell_exec"], "data_class": "public"},
+
+    "DuckDuckGoSearchRun": {"capabilities": ["network_read"], "is_source": true, "trust": "untrusted"},
+    "DuckDuckGoSearchResults": {"capabilities": ["network_read"], "is_source": true, "trust": "untrusted"},
+    "TavilySearchResults": {"capabilities": ["network_read"], "is_source": true, "trust": "untrusted"},
+    "SerperDevTool": {"capabilities": ["network_read"], "is_source": true, "trust": "untrusted"},
+    "GoogleSearchAPIWrapper": {"capabilities": ["network_read"], "is_source": true, "trust": "untrusted"},
+    "WebsiteSearchTool": {"capabilities": ["network_read"], "is_source": true, "trust": "untrusted"},
+    "WebScraperTool": {"capabilities": ["network_read"], "is_source": true, "trust": "untrusted"},
+    "ScrapeWebsiteTool": {"capabilities": ["network_read"], "is_source": true, "trust": "untrusted"},
+
+    "RequestsPostTool": {"capabilities": ["network_write"], "data_class": "public"},
+    "RequestsGetTool": {"capabilities": ["network_read"], "is_source": true, "trust": "untrusted"},
+    "GmailSendMessage": {"capabilities": ["email_send"], "data_class": "public"},
+    "SendEmailTool": {"capabilities": ["email_send"], "data_class": "public"},
+    "SlackPostTool": {"capabilities": ["network_write"], "data_class": "public"},
+
+    "FileReadTool": {"capabilities": ["fs_read"], "data_class": "private"},
+    "FileWriteTool": {"capabilities": ["fs_write"], "data_class": "private"},
+    "DirectoryReadTool": {"capabilities": ["fs_read"], "data_class": "private"},
+    "ReadFileTool": {"capabilities": ["fs_read"], "data_class": "private"},
+    "WriteFileTool": {"capabilities": ["fs_write"], "data_class": "private"},
+    "PDFSearchTool": {"capabilities": ["fs_read"], "data_class": "private"},
+
+    "QuerySQLDataBaseTool": {"capabilities": ["db_read", "db_write"], "data_class": "private"},
+    "SQLDatabaseToolkit": {"capabilities": ["db_read", "db_write"], "data_class": "private"},
+    "PGVectorStore": {"capabilities": ["db_read"], "data_class": "private"},
+    "VectorStoreQATool": {"capabilities": ["db_read"], "data_class": "private", "is_source": true, "trust": "untrusted"}
+  },
+
+  "by_category": {
+    "code_interpreter": {"capabilities": ["code_exec"], "data_class": "public"},
+    "shell": {"capabilities": ["shell_exec"], "data_class": "public"},
+    "web_search": {"capabilities": ["network_read"], "is_source": true, "trust": "untrusted"},
+    "http_request": {"capabilities": ["network_write"], "data_class": "public"},
+    "email": {"capabilities": ["email_send"], "data_class": "public"},
+    "document_loader": {"capabilities": ["fs_read"], "data_class": "private"},
+    "database": {"capabilities": ["db_read", "db_write"], "data_class": "private"}
+  },
+
+  "mcp_servers": {
+    "filesystem": {"capabilities": ["fs_read", "fs_write"], "data_class": "private"},
+    "git": {"capabilities": ["fs_read", "fs_write", "shell_exec"], "data_class": "private"},
+    "postgres": {"capabilities": ["db_read", "db_write"], "data_class": "private"},
+    "postgresql": {"capabilities": ["db_read", "db_write"], "data_class": "private"},
+    "sqlite": {"capabilities": ["db_read", "db_write"], "data_class": "private"},
+    "fetch": {"capabilities": ["network_read"], "is_source": true, "trust": "untrusted"},
+    "brave-search": {"capabilities": ["network_read"], "is_source": true, "trust": "untrusted"},
+    "slack": {"capabilities": ["network_write"], "data_class": "public"},
+    "github": {"capabilities": ["network_read", "network_write"], "data_class": "private"}
+  }
+}
