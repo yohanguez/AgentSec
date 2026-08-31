@@ -1,30 +1,73 @@
 import pydot
-from typing import Optional
+from typing import Set, Tuple
 
 from agentsec.models import GraphDefinition, NodeType
 
 
 class GraphVisualizer:
     def generate_svg(self, graph: GraphDefinition) -> str:
-        dot_graph = pydot.Dot(graph_type="digraph", rankdir="TB")
+        dot_graph = pydot.Dot(graph_type="digraph", rankdir="LR")
         dot_graph.set_node_defaults(fontname="Arial", fontsize="10")
         dot_graph.set_edge_defaults(fontname="Arial", fontsize="9")
 
-        # Add nodes
+        # Directed edges that lie on an attack path get highlighted red.
+        path_nodes: Set[str] = set(graph.attack_path_node_ids())
+        path_edges: Set[Tuple[str, str]] = set()
+        for f in graph.findings:
+            if f.path:
+                ids = f.path.node_ids
+                for a, b in zip(ids, ids[1:]):
+                    path_edges.add((a, b))
+
+        # agent -> owned tool ownership pairs.
+        ownership: Set[Tuple[str, str]] = set()
+        for a in graph.agents:
+            if a.node_id:
+                for tid in a.tool_ids:
+                    ownership.add((a.node_id, tid))
+
+        grade_by_node = {a.node_id: a.privilege_grade for a in graph.agents if a.node_id}
+
         for node in graph.nodes:
-            dot_node = self._create_dot_node(node)
-            dot_graph.add_node(dot_node)
+            dot_graph.add_node(
+                self._create_dot_node(node, node.id in path_nodes, grade_by_node.get(node.id))
+            )
 
-        # Add edges
+        drawn: Set[Tuple[str, str]] = set()
+
+        # 1. Workflow handoff edges (red if on an attack path).
         for edge in graph.edges:
-            # Sanitize edge source/target IDs
-            source_id = edge.source.replace('"', '').replace("'", "").replace(" ", "_")
-            target_id = edge.target.replace('"', '').replace("'", "").replace(" ", "_")
-            label = edge.condition if edge.condition else ""
-            dot_edge = pydot.Edge(source_id, target_id, label=label)
-            dot_graph.add_edge(dot_edge)
+            directed = (edge.source, edge.target)
+            on_path = directed in path_edges
+            kwargs = {"label": edge.condition or ""}
+            if on_path:
+                kwargs.update({"color": "#C0392B", "penwidth": "2.5"})
+            dot_graph.add_edge(
+                pydot.Edge(self._sanitize(edge.source), self._sanitize(edge.target), **kwargs)
+            )
+            drawn.add(directed)
 
-        # Generate SVG
+        # 2. Ownership edges — grey/dashed for context, UNLESS the pair is on an
+        #    attack path (in which case the red path edge below represents it).
+        for (aid, tid) in sorted(ownership):
+            if (aid, tid) in path_edges or (tid, aid) in path_edges:
+                continue
+            dot_graph.add_edge(
+                pydot.Edge(
+                    self._sanitize(aid), self._sanitize(tid),
+                    dir="none", style="dashed", color="#AEB6BF", penwidth="1",
+                )
+            )
+
+        # 3. Explicit red attack-path segments not already drawn (e.g. the
+        #    source->agent and agent->sink hops that aren't workflow handoffs).
+        for (u, v) in path_edges:
+            if (u, v) in drawn:
+                continue
+            dot_graph.add_edge(
+                pydot.Edge(self._sanitize(u), self._sanitize(v), color="#C0392B", penwidth="2.5")
+            )
+
         try:
             svg_data = dot_graph.create_svg()
             if isinstance(svg_data, bytes):
@@ -34,56 +77,45 @@ class GraphVisualizer:
             print(f"Warning: Failed to generate SVG: {e}")
             return self._generate_fallback_svg(graph)
 
-    def _create_dot_node(self, node) -> pydot.Node:
+    @staticmethod
+    def _sanitize(node_id: str) -> str:
+        return node_id.replace('"', "").replace("'", "").replace(" ", "_")
+
+    def _create_dot_node(self, node, on_attack_path: bool, grade) -> pydot.Node:
         style_map = {
-            NodeType.AGENT: {
-                "shape": "box",
-                "style": '"rounded,filled"',
-                "fillcolor": "#5DADE2",
-                "color": "#2874A6",
-            },
-            NodeType.TOOL: {
-                "shape": "ellipse",
-                "style": '"filled"',
-                "fillcolor": "#F8B400",
-                "color": "#D68910",
-            },
-            NodeType.CUSTOM_TOOL: {
-                "shape": "ellipse",
-                "style": '"filled"',
-                "fillcolor": "#F39C12",
-                "color": "#B9770E",
-            },
-            NodeType.MCP_SERVER: {
-                "shape": "hexagon",
-                "style": '"filled"',
-                "fillcolor": "#AF7AC5",
-                "color": "#7D3C98",
-            },
-            NodeType.BASIC: {
-                "shape": "circle",
-                "style": '"filled"',
-                "fillcolor": "#52BE80",
-                "color": "#27AE60",
-            },
+            NodeType.AGENT: {"shape": "box", "style": '"rounded,filled"', "fillcolor": "#5DADE2", "color": "#2874A6"},
+            NodeType.TOOL: {"shape": "ellipse", "style": '"filled"', "fillcolor": "#F8B400", "color": "#D68910"},
+            NodeType.CUSTOM_TOOL: {"shape": "ellipse", "style": '"filled"', "fillcolor": "#F39C12", "color": "#B9770E"},
+            NodeType.MCP_SERVER: {"shape": "hexagon", "style": '"filled"', "fillcolor": "#AF7AC5", "color": "#7D3C98"},
+            NodeType.BASIC: {"shape": "circle", "style": '"filled"', "fillcolor": "#52BE80", "color": "#27AE60"},
         }
+        style = dict(style_map.get(node.type, style_map[NodeType.BASIC]))
 
-        style = style_map.get(node.type, style_map[NodeType.BASIC])
-
-        # Add vulnerability indicator - escape special characters
         label = node.name.replace('"', '\\"')
-        if node.vulnerabilities:
-            # Use parentheses instead of square brackets to avoid DOT syntax issues
-            label += f"\\n({len(node.vulnerabilities)} vuln)"
 
-        # Sanitize node ID for Graphviz
-        node_id = node.id.replace('"', '').replace("'", "").replace(" ", "_")
+        # Agent grade badge.
+        if grade:
+            label += f"\\n[grade {grade}]"
+            if grade == "F":
+                style["fillcolor"] = "#E74C3C"
+                style["color"] = "#922B21"
+            elif grade == "D":
+                style["fillcolor"] = "#EB984E"
 
-        return pydot.Node(
-            node_id,
-            label=label,
-            **style,
-        )
+        # Tool capability badge.
+        if node.type in (NodeType.TOOL, NodeType.CUSTOM_TOOL) and node.capabilities:
+            caps = ",".join(c.value for c in node.capabilities)
+            label += f"\\n({caps})"
+        if node.is_source:
+            label += "\\n[untrusted source]"
+
+        # Red highlight for anything on an attack path.
+        if on_attack_path:
+            style["color"] = "#C0392B"
+            style["penwidth"] = "3"
+
+        node_id = self._sanitize(node.id)
+        return pydot.Node(node_id, label=label, **style)
 
     def _generate_fallback_svg(self, graph: GraphDefinition) -> str:
         return f"""
