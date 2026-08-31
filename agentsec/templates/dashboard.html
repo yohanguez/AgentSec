@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgentSec Dashboard</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
+               background:#eef1f4; color:#2c3e50; padding:24px; }
+        .container { max-width:1100px; margin:0 auto; }
+        header { background:#1b4f72; color:#fff; padding:28px 32px; border-radius:10px; margin-bottom:22px; }
+        header h1 { font-size:1.8em; }
+        header p { opacity:.85; font-size:.92em; margin-top:4px; }
+        .panel { background:#fff; border-radius:10px; padding:22px 26px; margin-bottom:20px; box-shadow:0 2px 10px rgba(0,0,0,.06); }
+        .panel h2 { color:#2874A6; font-size:1.15em; margin-bottom:14px; }
+        .run-form { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+        .run-form input, .run-form select { padding:9px 11px; border:1px solid #cdd6de; border-radius:6px; font-size:.9em; }
+        .run-form input[type=text]{ flex:1; min-width:240px; }
+        .btn { background:#2874A6; color:#fff; border:none; padding:10px 18px; border-radius:6px; cursor:pointer; font-size:.9em; font-weight:600; }
+        .btn:hover { background:#1b4f72; }
+        table { width:100%; border-collapse:collapse; }
+        th,td { padding:11px; text-align:left; border-bottom:1px solid #e6e9ec; font-size:.9em; }
+        th { color:#1b4f72; }
+        .tag { display:inline-block; padding:2px 9px; border-radius:12px; font-size:.72em; font-weight:700; text-transform:uppercase; }
+        .tag-scan { background:#eaf2f8; color:#21618c; }
+        .tag-monitor { background:#f4ecf7; color:#7d3c98; }
+        .pill { display:inline-block; padding:1px 8px; border-radius:10px; font-size:.75em; font-weight:700; color:#fff; margin-right:4px; }
+        .p-crit { background:#c0392b; } .p-high { background:#e67e22; } .p-med { background:#b7950b; }
+        a.row-link { color:#2874A6; text-decoration:none; font-weight:600; }
+        a.row-link:hover { text-decoration:underline; }
+        .empty { color:#889; font-style:italic; padding:14px 0; }
+        #msg { font-size:.85em; margin-top:8px; color:#196f3d; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>🔍 AgentSec Dashboard</h1>
+        <p>Auditing AI Agents — excessive agency, lethal trifecta &amp; abusable attack paths · v{{ version }}</p>
+    </header>
+
+    <div class="panel">
+        <h2>Run a new audit</h2>
+        <div class="run-form">
+            <select id="framework">
+                <option value="langgraph">LangGraph</option>
+                <option value="crewai">CrewAI</option>
+                <option value="openai-agents">OpenAI Agents</option>
+                <option value="autogen">Autogen</option>
+                <option value="n8n">n8n</option>
+            </select>
+            <input type="text" id="path" placeholder="path to workflow code, e.g. demo/autoops" />
+            <button class="btn" onclick="runScan()">Scan</button>
+            <button class="btn" style="background:#7d3c98" onclick="runMonitor()">Monitor 15s</button>
+        </div>
+        <div id="msg"></div>
+    </div>
+
+    <div class="panel">
+        <h2>Runs</h2>
+        {% if runs %}
+        <table>
+            <thead><tr><th>When</th><th>Type</th><th>Title</th><th>Result</th><th></th></tr></thead>
+            <tbody>
+            {% for r in runs %}
+                <tr>
+                    <td>{{ r.created_at }}</td>
+                    <td><span class="tag tag-{{ r.kind }}">{{ r.kind }}</span></td>
+                    <td>{{ r.title }}</td>
+                    <td>
+                        {% if r.kind == 'scan' %}
+                            {% if r.summary.critical %}<span class="pill p-crit">{{ r.summary.critical }} crit</span>{% endif %}
+                            {% if r.summary.high %}<span class="pill p-high">{{ r.summary.high }} high</span>{% endif %}
+                            {% if r.summary.medium %}<span class="pill p-med">{{ r.summary.medium }} med</span>{% endif %}
+                            {{ r.summary.agents }} agents / {{ r.summary.tools }} tools
+                        {% else %}
+                            {{ r.summary.connections }} connections / {{ r.summary.services }} services
+                        {% endif %}
+                    </td>
+                    <td><a class="row-link" href="/{{ r.kind }}/{{ r.id }}">view →</a></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="empty">No runs yet. Start one above.</p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+async function post(url, body) {
+    const res = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+    if (!res.ok) { const e = await res.json(); throw new Error(e.detail || res.statusText); }
+    return res.json();
+}
+async function runScan() {
+    const framework = document.getElementById('framework').value;
+    const path = document.getElementById('path').value.trim();
+    const msg = document.getElementById('msg');
+    if (!path) { msg.style.color='#c0392b'; msg.textContent='Enter a path.'; return; }
+    msg.style.color='#196f3d'; msg.textContent='Scanning…';
+    try { const r = await post('/api/scan', {framework, path}); window.location = r.url; }
+    catch (e) { msg.style.color='#c0392b'; msg.textContent='Error: ' + e.message; }
+}
+async function runMonitor() {
+    const msg = document.getElementById('msg');
+    msg.style.color='#196f3d'; msg.textContent='Observing network for 15s…';
+    try { const r = await post('/api/monitor', {duration:15}); window.location = r.url; }
+    catch (e) { msg.style.color='#c0392b'; msg.textContent='Error: ' + e.message; }
+}
+</script>
+</body>
+</html>
