@@ -26,8 +26,9 @@
     .preset { background:#24303f; color:#cdd8e3; border:1px solid #2c3a4c; padding:6px 10px;
               border-radius:14px; cursor:pointer; font-size:.8em; }
     .preset:hover { border-color:#5DADE2; color:#fff; }
-    .mode { font-size:.82em; color:#8a97a6; }
+    .mode { font-size:.82em; color:#8a97a6; align-items:center; }
     .mode label { margin-right:12px; cursor:pointer; }
+    .axis-label { display:inline-block; width:46px; color:#5DADE2; font-weight:700; text-transform:uppercase; font-size:.72em; letter-spacing:.5px; }
     svg { width:100%; height:auto; background:#0f1620; border-radius:8px; }
     .trace, .panel-list { font-family:'SF Mono',Menlo,monospace; font-size:.8em; max-height:340px; overflow-y:auto; }
     .trace div, .panel-list div { padding:4px 6px; border-bottom:1px solid #1d2836; }
@@ -71,9 +72,14 @@
                 <button class="btn ghost" onclick="resetAll()">↺ Reset</button>
             </div>
             <div class="row mode">
-                <label><input type="radio" name="mode" value="deterministic" checked onchange="onModeChange()"> Live (reliable)</label>
-                <label><input type="radio" name="mode" value="ollama" onchange="onModeChange()"> 🧠 Local LLM (Qwen2.5-7B)</label>
-                <label><input type="radio" name="mode" value="secure" onchange="onModeChange()"> 🛡️ Secure (hardened)</label>
+                <span class="axis-label">Agent</span>
+                <label><input type="radio" name="agent" value="vulnerable" checked onchange="onModeChange()"> Vulnerable</label>
+                <label><input type="radio" name="agent" value="hardened" onchange="onModeChange()"> 🛡️ Hardened</label>
+            </div>
+            <div class="row mode">
+                <span class="axis-label">Brain</span>
+                <label><input type="radio" name="brain" value="rule" checked onchange="onModeChange()"> Rule-based</label>
+                <label><input type="radio" name="brain" value="llm" onchange="onModeChange()"> 🧠 Local LLM (Qwen-7B)</label>
             </div>
             <div id="verdict" class="verdict"></div>
         </div>
@@ -101,9 +107,21 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 let POS = {};      // node id -> {x,y,type}
 let GRAPHW = 760, GRAPHH = 520;
 
+function selectedAgent() { return document.querySelector('input[name=agent]:checked').value; }
+function selectedBrain() { return document.querySelector('input[name=brain]:checked').value; }
+
 function currentTarget() {
-    const m = document.querySelector('input[name=mode]:checked');
-    return (m && m.value === 'secure') ? 'secure' : 'vulnerable';
+    return selectedAgent() === 'hardened' ? 'secure' : 'vulnerable';
+}
+
+// Map the two axes (agent × brain) to a backend mode string.
+function computeMode() {
+    const hardened = selectedAgent() === 'hardened';
+    const llm = selectedBrain() === 'llm';
+    if (hardened && llm) return 'secure_llm';
+    if (hardened) return 'secure';
+    if (llm) return 'ollama';
+    return 'deterministic';
 }
 
 async function loadGraph(target) {
@@ -237,7 +255,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 async function submitTicket() {
     const ticket = document.getElementById('ticket').value.trim();
     if (!ticket) return;
-    const mode = document.querySelector('input[name=mode]:checked').value;
+    const mode = computeMode();
     resetAll(); await sleep(50);
     let res;
     try {

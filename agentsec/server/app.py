@@ -202,15 +202,21 @@ def create_app(db_path: Optional[Path] = None) -> FastAPI:
 
     @app.post("/console/submit")
     def console_submit(req: ConsoleRequest):
-        from agentsec.server.console import ConsoleAgent, SecureConsoleAgent, run_llm, run_ollama
+        from agentsec.server.console import (
+            ConsoleAgent, SecureConsoleAgent, run_llm, run_ollama, run_ollama_secure,
+        )
 
-        if req.mode == "secure":
+        # Two orthogonal axes: agent (vulnerable|hardened) × brain (rule|llm).
+        # `mode` encodes the combination.
+        if req.mode == "secure_llm":       # hardened agent, real LLM
+            return run_ollama_secure(req.ticket)
+        if req.mode == "secure":           # hardened agent, rule-based
             return SecureConsoleAgent().run(req.ticket)
-        if req.mode == "ollama":
+        if req.mode == "ollama":           # vulnerable agent, real LLM
             return run_ollama(req.ticket)
-        if req.mode == "llm":
+        if req.mode == "llm":              # vulnerable agent, OpenAI
             return run_llm(req.ticket)
-        return ConsoleAgent().run(req.ticket)
+        return ConsoleAgent().run(req.ticket)  # vulnerable agent, rule-based
 
     return app
 
