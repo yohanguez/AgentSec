@@ -114,6 +114,33 @@ class Sandbox:
         conn.close()
         return json.dumps(rows)
 
+    # ── hardened helpers (used by the Secure workflow) ──────────────────────────
+    def read_customer_by_id(self, cid: str):
+        """Read a SINGLE customer row by id (least-privilege data access)."""
+        conn = sqlite3.connect(self.db)
+        row = conn.execute(
+            "SELECT id,name,email,plan FROM customers WHERE id = ?", (str(cid),)
+        ).fetchone()
+        conn.close()
+        return row
+
+    def allowed_recipients(self):
+        """The only addresses the hardened responder may email (customers' own)."""
+        conn = sqlite3.connect(self.db)
+        emails = [r[0] for r in conn.execute("SELECT email FROM customers").fetchall()]
+        conn.close()
+        return set(emails)
+
+    @staticmethod
+    def is_blocked_host(url: str) -> bool:
+        """True if a URL targets link-local / metadata / private space (SSRF guard)."""
+        import re as _re
+        m = _re.search(r"https?://([^/:]+)", url or "")
+        host = m.group(1) if m else ""
+        if "169.254" in host or "metadata" in (url or "").lower() or "meta-data" in (url or "").lower():
+            return True
+        return _is_private_ip(host)
+
     def run_shell(self, command: str) -> Dict[str, str]:
         res = subprocess.run(
             command, shell=True, cwd=self.dir, capture_output=True, text=True, timeout=10

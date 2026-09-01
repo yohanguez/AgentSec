@@ -38,8 +38,9 @@ class ConsoleRequest(BaseModel):
     mode: str = "deterministic"
 
 
-# Directory the interactive Agent Console demonstrates against.
+# Directories the interactive Agent Console demonstrates against.
 _CONSOLE_TARGET = Path(__file__).parent.parent.parent / "demo" / "autoops"
+_CONSOLE_SECURE_TARGET = Path(__file__).parent.parent.parent / "demo" / "autoops_secure"
 
 
 def _analyzer_map():
@@ -157,13 +158,14 @@ def create_app(db_path: Optional[Path] = None) -> FastAPI:
         return env.get_template("console.html").render(version=__version__)
 
     @app.get("/console/graph")
-    def console_graph():
+    def console_graph(target: str = "vulnerable"):
         from agentsec.analyzers import LangGraphAnalyzer
 
-        if not _CONSOLE_TARGET.exists():
+        tdir = _CONSOLE_SECURE_TARGET if target == "secure" else _CONSOLE_TARGET
+        if not tdir.exists():
             raise HTTPException(status_code=404, detail="console target missing")
-        graph = LangGraphAnalyzer(_CONSOLE_TARGET).analyze()
-        graph = Auditor(_CONSOLE_TARGET).audit(graph)
+        graph = LangGraphAnalyzer(tdir).analyze()
+        graph = Auditor(tdir).audit(graph)
         grade = {a.node_id: a.privilege_grade for a in graph.agents if a.node_id}
         owner = {}
         for a in graph.agents:
@@ -200,8 +202,10 @@ def create_app(db_path: Optional[Path] = None) -> FastAPI:
 
     @app.post("/console/submit")
     def console_submit(req: ConsoleRequest):
-        from agentsec.server.console import ConsoleAgent, run_llm, run_ollama
+        from agentsec.server.console import ConsoleAgent, SecureConsoleAgent, run_llm, run_ollama
 
+        if req.mode == "secure":
+            return SecureConsoleAgent().run(req.ticket)
         if req.mode == "ollama":
             return run_ollama(req.ticket)
         if req.mode == "llm":

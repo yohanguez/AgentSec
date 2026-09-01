@@ -64,14 +64,16 @@
                 <span class="preset" onclick="loadPreset('rce')">💣 RCE</span>
                 <span class="preset" onclick="loadPreset('exfil')">📤 Data exfil</span>
                 <span class="preset" onclick="loadPreset('ssrf')">☁️ SSRF creds</span>
+                <span class="preset" onclick="loadPreset('benign')">✅ Benign</span>
             </div>
             <div class="row">
                 <button class="btn danger" onclick="submitTicket()">▶ Send to agent</button>
                 <button class="btn ghost" onclick="resetAll()">↺ Reset</button>
             </div>
             <div class="row mode">
-                <label><input type="radio" name="mode" value="deterministic" checked> Live (reliable)</label>
-                <label><input type="radio" name="mode" value="ollama"> 🧠 Local LLM (Qwen2.5-7B)</label>
+                <label><input type="radio" name="mode" value="deterministic" checked onchange="onModeChange()"> Live (reliable)</label>
+                <label><input type="radio" name="mode" value="ollama" onchange="onModeChange()"> 🧠 Local LLM (Qwen2.5-7B)</label>
+                <label><input type="radio" name="mode" value="secure" onchange="onModeChange()"> 🛡️ Secure (hardened)</label>
             </div>
             <div id="verdict" class="verdict"></div>
         </div>
@@ -99,10 +101,20 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 let POS = {};      // node id -> {x,y,type}
 let GRAPHW = 760, GRAPHH = 520;
 
-async function loadGraph() {
-    const g = await (await fetch('/console/graph')).json();
+function currentTarget() {
+    const m = document.querySelector('input[name=mode]:checked');
+    return (m && m.value === 'secure') ? 'secure' : 'vulnerable';
+}
+
+async function loadGraph(target) {
+    target = target || currentTarget();
+    const g = await (await fetch('/console/graph?target=' + target)).json();
     layout(g);
     draw(g);
+}
+
+function onModeChange() {
+    resetAll();  // reloads the correct graph (vulnerable vs hardened)
 }
 
 function layout(g) {

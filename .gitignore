@@ -62,3 +62,7 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Generated scan reports (keep example-report.html only)
+/report.html
+/report_*.html

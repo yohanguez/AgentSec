@@ -82,3 +82,25 @@ def test_console_benign_ticket_not_compromised(client):
     r = client.post("/console/submit",
                     json={"ticket": "Hi, I forgot my password, can you help?", "mode": "deterministic"}).json()
     assert r["compromised"] is False
+
+
+# ---------------------------------------------------------------- secure (hardened) mode
+def test_secure_graph_is_hardened(client):
+    g = client.get("/console/graph?target=secure").json()
+    names = {a["node_id"] for a in g["agents"]}
+    assert names == {"intake", "data_agent", "responder"}
+
+
+def test_secure_blocks_all_attacks(client):
+    presets = client.get("/console/presets").json()
+    for kind in ("rce", "exfil", "ssrf"):
+        r = client.post("/console/submit", json={"ticket": presets[kind], "mode": "secure"}).json()
+        assert r["compromised"] is False, f"{kind} should be blocked"
+        assert "blocked" in r["verdict"].lower()
+
+
+def test_secure_resolves_benign(client):
+    presets = client.get("/console/presets").json()
+    r = client.post("/console/submit", json={"ticket": presets["benign"], "mode": "secure"}).json()
+    assert r["compromised"] is False
+    assert "resolved" in r["verdict"].lower()
