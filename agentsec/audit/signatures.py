@@ -126,9 +126,14 @@ class _BodyVisitor(ast.NodeVisitor):
             if any(h in key.lower() for h in _SECRET_ENV_HINTS):
                 self._add(Capability.SECRETS_ACCESS, "reads secret env var %r" % key)
 
-        # DB execute: inspect SQL text to decide read vs write
-        if dotted in _DOTTED_PATTERNS[Capability.DB_READ]:
-            sql = (self._string_arg_at(node, 0) or "").lower()
+        # DB execute: inspect SQL text to decide read vs write. Match the known
+        # dotted forms (cursor.execute, conn.execute, …) AND any `<x>.execute("<SQL>")`
+        # so we aren't fooled by the cursor variable's name (cur, c, …).
+        sql = (self._string_arg_at(node, 0) or "").lower()
+        sql_like = any(k in sql for k in
+                       ("select ", "insert ", "update ", "delete ", " from ", " where ")) \
+            or any(h in sql for h in _WRITE_SQL_HINTS)
+        if dotted in _DOTTED_PATTERNS[Capability.DB_READ] or (bare == "execute" and sql_like):
             self._add(Capability.DB_READ, "executes a database query")
             if any(h in sql for h in _WRITE_SQL_HINTS):
                 self._add(Capability.DB_WRITE, "executes a mutating SQL statement")
