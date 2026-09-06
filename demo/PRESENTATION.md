@@ -40,11 +40,11 @@ Quick smoke test in the browser: open `/console`, click **Data exfil**, **Send t
 ---
 
 ## 2. ACT 1 — Hack the agent live
-Browser: **http://localhost:8000/console**. Two independent toggles:
-- **Agent:** `Vulnerable` ⟷ `🛡️ Hardened`  (which workflow)
-- **Brain:** `Rule-based` ⟷ `🧠 Local LLM (Qwen-7B)`  (what drives decisions)
+Browser: **http://localhost:8000/console**.
+- **Agent:** `Vulnerable` ⟷ `🛡️ Hardened`  (which workflow) — this is the toggle you flip during the talk
+- **Brain:** `🧠 Local LLM (Qwen-7B)` — a real local model drives every decision
 
-For the live hack set **Agent = Vulnerable, Brain = Local LLM** (a real model being prompt-injected; use Rule-based as a reliable fallback).
+For the live hack keep **Agent = Vulnerable** (a real model being prompt-injected).
 - Click a preset (**RCE / Data exfil / SSRF**) or type your own ticket → **Send to agent**.
 - Watch: red attack path on the graph + real stolen data in the **Attacker C2** panel.
 
@@ -71,10 +71,9 @@ Recommendations applied in [`demo/autoops_secure/`](autoops_secure/): trifecta b
 
 **Static:** `agentsec scan langgraph -i demo/autoops_secure` → **0 findings** (vs 8 on the vulnerable one).
 
-**Runtime:** in the console flip **Agent → 🛡️ Hardened** (keep Brain on either) and re-run the *same* tickets:
-- RCE / Exfil / SSRF → **🛡️ blocked by controls**
+**Runtime:** in the console flip **Agent → 🛡️ Hardened** and re-run the *same* tickets:
+- RCE / Exfil / SSRF → **🛡️ blocked by controls** (even with the real model driving)
 - **✅ Benign** ticket → still **resolved** (password reset sent) — proving least privilege keeps the function.
-- Bonus beat: set **Brain = Local LLM** too — even a real model against the hardened tools can't do damage.
 
 > "Same agent, same attacks — built the way the report said. They all fail, and it still does its job."
 
