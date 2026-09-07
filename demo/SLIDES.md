@@ -249,3 +249,79 @@ Under each stage, a one-line caption. Highlight the "reach" stage (the novel par
 
 ### Timing (~20 min): Problem 4 · Tool 4 · **Demo 7** · Defense 4 · buffer/Q&A 1
 ### Pre-flight: `ollama serve` + `dumbagent` present · `agentsec serve` up · scan command ready · each console mode tested · fallback screenshots loaded. Full run sheet: `demo/PRESENTATION.md`.
+
+---
+
+# 🎤 SPEAKER SCRIPT — read this out loud (simple English)
+
+> Short sentences. Speak slowly. `[DO: …]` = an action, not something to say.
+
+## Slide 1 — Title
+"Hello everyone. My name is [Name]. Today I will show you something simple and a little scary. I will hack an AI agent, live, on stage. I will not use any password. I will not use any exploit. I will just send it a support ticket. And then I will show you a free tool that finds this problem before you ship your agent. Let's start."
+
+## Slide 2 — We handed agents the keys
+"First, let's agree on what an AI agent is today. It is not a chatbot anymore. An agent takes actions. It can run shell commands. It can read your database. It can call websites. It can send emails. It can read and write files. The language model decides which tool to use, and what to send to it. And here is the problem: the model makes these decisions by reading text. Text from tickets, from web pages, from users. Text an attacker can control."
+
+## Slide 3 — Excessive Agency
+"Most agents get far more power than they need. We give them tools 'just in case.' This has a name: OWASP calls it Excessive Agency. The agent on the right has read access, write access, shell, email, code execution. But it only needs two of these to do its job. All the extra power is attack surface. This is what I mean by 'should not have root.' It has power it never needed."
+
+## Slide 4 — The Lethal Trifecta
+"Here is the most important idea in this talk. Please remember it. There are three dangerous powers. One: access to private data. Two: exposure to untrusted content. Three: the ability to send data outside. Any one of these alone is fine. But when a single agent has all three at the same time, you are in trouble. An attacker can put instructions in the untrusted content, make the agent read your private data, and send it out. We call this the lethal trifecta."
+
+## Slide 5 — The tooling gap
+"So how do we protect agents today? There are good tools, but they look at other things. Garak and PyRIT attack the model with bad prompts. Discovery tools list what AI is running. But nobody looks at the agent workflow itself. Nobody checks the trust boundaries, and how untrusted input can reach a dangerous tool across agents. That is the gap. That is what we built."
+
+## Slide 6 — Introducing AgentSec
+"This is AgentSec. It is a static analysis tool for AI agent workflows. It supports LangGraph, CrewAI, OpenAI Agents, Autogen, and n8n. It answers three simple questions, without running your agent. One: what can each agent do? Two: which agents have too much power? Three: can untrusted input reach a dangerous tool? No API keys. No model. Just analysis. The results are facts, not guesses."
+
+## Slide 7 — How it works
+"How does it work? Four steps. First, we read your code and build a graph of the agents and their tools. Second, we tag each tool with its powers, like 'can run code' or 'can read the database.' Third — and this is the new part — we follow the path. We check if untrusted input can travel through the agents and reach a dangerous tool. Fourth, we report the findings. The third step, following the tainted path across agents, is the part nobody else does."
+
+## Slide 8 — Not just name-matching
+"You might think: this is just searching for tool names. It is not. When a tool is custom code, we read the function body. Look here. This function runs a shell command with subprocess. So we tag it: shell execution. It calls requests dot post. So we tag it: sends data out. It runs a database query. So we tag it: reads the database. And every tag comes with the evidence. We show you the exact line. Not a guess. Proof."
+
+## Slide 9 — What it finds
+"AgentSec reports three main findings. First, the lethal trifecta on one agent. Second, excessive agency, when an agent has too much dangerous power. Third, a dangerous reachable path, when untrusted input can reach a shell or an exfiltration tool. Every finding is mapped to OWASP and CWE, and comes with a fix. Now, let me show you all of this on a real agent."
+
+## Slide 10 — Meet AutoOps
+"Meet AutoOps. It is an AI crew that handles support incidents automatically. Three agents: triage, remediation, and notify. It can search the web, read the customer database, run Python, run shell commands, send email, call a webhook. It looks normal. Many teams build things like this. But it is a disaster. Let me show you why."
+
+## Slide 10b — How the demo is wired
+"Before I attack it, let me show you how this demo is built. Because everything you will see is real — but it all runs on this one laptop. On the left, that is me, the attacker. I only have a browser. I send a ticket to the agent. The brain of the agent is a real language model — Qwen — running locally with Ollama. No cloud. No API key. The agent has real tools: a real customer database, a real shell, and it can call the network. Over here is the attacker's server that catches stolen data. And here is a fake cloud server for the credential attack. Everything runs in a temporary folder, on localhost. Nothing leaves this machine. And on the side, AgentSec only reads the code — it never runs any of this. [DO: switch to the browser.]"
+
+## Slide 11 — [DEMO 1] Hack it live
+"Here is the live agent. I am the attacker. I have no account. I only have one thing: a support ticket. Let me show you three attacks — all from tickets." [Then start the video.]
+
+## Slide 11b — ▶ VIDEO: DEMO_1_4K.mp4
+[PLACEHOLDER: embed and play the video file **DEMO_1_4K.mp4** here — full screen.]
+The timed voiceover for this video is in **`demo/DEMO_1_VIDEO_SCRIPT.md`** (2m37s: screen tour → RCE → data exfiltration → SSRF credential theft → conclusion). Play the video, then continue to Slide 12.
+
+## Slide 12 — [DEMO 2] The reveal
+"Now the important part. Could we have caught this before we deployed the agent? Yes. Let me run AgentSec on the same agent — without running the agent itself."
+
+## Slide 12b — ▶ VIDEO: DEMO_2_4K.mp4
+[PLACEHOLDER: embed and play the video file **DEMO_2_4K.mp4** here — full screen.]
+The timed voiceover for this video is in **`demo/DEMO_2_VIDEO_SCRIPT.md`** (1m51s: run the scan → workflow & attack paths → privilege report card → findings → conclusion). Play the video, then continue to Slide 13.
+
+## Slide 13 — [DEMO 3] The cure works
+"So the report tells us how to fix it. Let's do it. This is the same agent, but rebuilt the safe way. [DO: set Agent to Hardened. Run the same attacks.] Same tickets. Now — blocked. Blocked. Blocked. The attacks fail. But wait — is the agent still useful? [DO: run the benign ticket.] Yes. A normal ticket still works. The password reset is sent. So: same attacks fail, and the agent still does its job."
+
+## Slide 14 — Guardrails won't save you
+"Let me show you some numbers. We ran each attack ten times, against a real model, with a normal, safe prompt. Code execution: ten out of ten. Data theft: ten out of ten. The model followed the attack every single time. It only sometimes refused one attack — the credential theft — because the URL looked suspicious. So the lesson is clear. The model's safety is not reliable. You cannot trust the model to protect itself."
+
+## Slide 15 — Defense: break the trifecta
+"So what do you do? The main idea: break the trifecta. Give each agent only what it needs. Split the big powerful agent into smaller ones. Remove or sandbox code and shell. Check the inputs — block dangerous URLs, do not allow free-form sending. And for dangerous actions, ask a human first. Remember the three circles from before? Now they do not touch. No single agent has all three powers."
+
+## Slide 16 — Honest limits
+"Let me be honest about the limits. Static analysis cannot see tools that are built at runtime. For that, we have a monitor command that watches live traffic. We report that a path is reachable — not that it is one hundred percent exploitable. So we label our confidence, high or medium. And our tool knowledge is a list you can extend with your own tools. I tell you this because honesty builds trust, and because it is true."
+
+## Slide 17 — Call to action
+"AgentSec is open source. You can use it today. Clone the repo, install it, and run one command on your agent code. It gives you a report in seconds. Please, before your next agent goes live, scan it. Our roadmap includes CI integration, more frameworks, and MCP support. The link and the QR code are on the screen. A star on GitHub really helps."
+
+## Slide 18 — Thank you
+"To finish: find the attack paths in your agents, before an attacker does. That is what AgentSec is for. Thank you very much. I am happy to take your questions."
+
+---
+
+### Timing note for the script
+Speak about 130–150 words per minute. The slides above are ~2,000 words of speaking, which is ~14–15 minutes. The live demo (slides 11–13) adds ~5–6 minutes of actions. Total ≈ 20 minutes. If you run long, shorten slides 5, 8, and 16.

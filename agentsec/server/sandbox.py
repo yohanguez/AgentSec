@@ -24,6 +24,22 @@ from typing import Dict, List, Optional
 # Captured exfil payloads (what landed at the attacker C2).
 C2_CAPTURED: List[str] = []
 
+
+def _is_private_ip(host: str) -> bool:
+    """True for loopback / link-local / RFC-1918 hosts (used by the SSRF guard)."""
+    if not host:
+        return False
+    if host in ("localhost", "::1"):
+        return True
+    if host.startswith(("127.", "10.", "192.168.", "169.254.")):
+        return True
+    if host.startswith("172."):
+        try:
+            return 16 <= int(host.split(".")[1]) <= 31
+        except (ValueError, IndexError):
+            return False
+    return False
+
 _FAKE_CREDS = json.dumps({
     "AccessKeyId": "AKIAIOSFODNN7EXAMPLE",
     "SecretAccessKey": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
