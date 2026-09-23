@@ -20,81 +20,69 @@ def create_multi_agent_graph():
     nodes = [
         # Start/End nodes
         NodeDefinition(
-            id="start",
-            name="START",
-            type=NodeType.BASIC,
-            description="Workflow entry point"
+            id="start", name="START", type=NodeType.BASIC, description="Workflow entry point"
         ),
         NodeDefinition(
             id="supervisor",
             name="Supervisor",
             type=NodeType.AGENT,
-            description="Coordinates agent activities and logs to database"
+            description="Coordinates agent activities and logs to database",
         ),
-
         # Agent 1: Research Agent
         NodeDefinition(
             id="research_agent",
             name="Research Agent",
             type=NodeType.AGENT,
-            description="Gathers information from web, databases, and repositories"
+            description="Gathers information from web, databases, and repositories",
         ),
-
         # Agent 2: Developer Agent
         NodeDefinition(
             id="developer_agent",
             name="Developer Agent",
             type=NodeType.AGENT,
-            description="Writes code, manages files, and commits changes"
+            description="Writes code, manages files, and commits changes",
         ),
-
         # Tools for Research Agent
         NodeDefinition(
             id="tool_search",
             name="DuckDuckGoSearchRun",
             type=NodeType.TOOL,
             category=ToolCategory.WEB_SEARCH,
-            description="Web search for gathering information"
+            description="Web search for gathering information",
         ),
-
         # Tools for Developer Agent
         NodeDefinition(
             id="tool_python",
             name="PythonREPL",
             type=NodeType.TOOL,
             category=ToolCategory.CODE_INTERPRETER,
-            description="Execute Python code for development tasks"
+            description="Execute Python code for development tasks",
         ),
-
         # MCP Servers (External Services)
         NodeDefinition(
             id="mcp_filesystem",
             name="MCP Filesystem Server",
             type=NodeType.MCP_SERVER,
             category=ToolCategory.DOCUMENT_LOADER,
-            description="Provides file system operations (read, write, list directories)"
+            description="Provides file system operations (read, write, list directories)",
         ),
         NodeDefinition(
             id="mcp_git",
             name="MCP Git Server",
             type=NodeType.MCP_SERVER,
             category=ToolCategory.DEFAULT,
-            description="Provides Git operations (clone, commit, push, pull)"
+            description="Provides Git operations (clone, commit, push, pull)",
         ),
         NodeDefinition(
             id="mcp_database",
             name="MCP PostgreSQL Server",
             type=NodeType.MCP_SERVER,
             category=ToolCategory.DATABASE,
-            description="Provides database operations (query, insert, update)"
+            description="Provides database operations (query, insert, update)",
         ),
-
         # End node
         NodeDefinition(
-            id="end",
-            name="END",
-            type=NodeType.BASIC,
-            description="Workflow completion"
+            id="end", name="END", type=NodeType.BASIC, description="Workflow completion"
         ),
     ]
 
@@ -103,41 +91,25 @@ def create_multi_agent_graph():
         # Entry flow
         EdgeDefinition(source="start", target="supervisor"),
         EdgeDefinition(source="supervisor", target="research_agent"),
-
         # Research Agent connections
         EdgeDefinition(source="research_agent", target="tool_search"),
         EdgeDefinition(source="research_agent", target="mcp_database"),
         EdgeDefinition(source="research_agent", target="mcp_git"),
-
         # Agent handoff: Research -> Developer
-        EdgeDefinition(
-            source="research_agent",
-            target="developer_agent",
-            condition="has_data"
-        ),
-
+        EdgeDefinition(source="research_agent", target="developer_agent", condition="has_data"),
         # Developer Agent connections
         EdgeDefinition(source="developer_agent", target="tool_python"),
         EdgeDefinition(source="developer_agent", target="mcp_filesystem"),
         EdgeDefinition(source="developer_agent", target="mcp_git"),
-
         # Agent handoff: Developer -> Research (for more info)
         EdgeDefinition(
-            source="developer_agent",
-            target="research_agent",
-            condition="needs_more_info"
+            source="developer_agent", target="research_agent", condition="needs_more_info"
         ),
-
         # Supervisor logging
         EdgeDefinition(source="tool_search", target="supervisor"),
         EdgeDefinition(source="tool_python", target="supervisor"),
-
         # Exit flow
-        EdgeDefinition(
-            source="developer_agent",
-            target="end",
-            condition="complete"
-        ),
+        EdgeDefinition(source="developer_agent", target="end", condition="complete"),
     ]
 
     # Define agents with their prompts
@@ -154,7 +126,7 @@ Your responsibilities:
 - Ensure workflow completion
 
 You coordinate between Research Agent and Developer Agent.""",
-            has_guardrails=False
+            has_guardrails=False,
         ),
         AgentDefinition(
             name="Research Agent",
@@ -174,7 +146,7 @@ Tools available:
 When you complete your research, hand off to the Developer Agent.
 
 SECURITY NOTE: Validate all URLs and sanitize database queries.""",
-            has_guardrails=False
+            has_guardrails=False,
         ),
         AgentDefinition(
             name="Developer Agent",
@@ -195,7 +167,7 @@ Tools available:
 When you need more information, hand off back to Research Agent.
 
 SECURITY NOTE: Validate file paths and never execute untrusted code.""",
-            has_guardrails=False
+            has_guardrails=False,
         ),
     ]
 
@@ -209,15 +181,17 @@ SECURITY NOTE: Validate file paths and never execute untrusted code.""",
             "description": "Multi-agent system with MCP server integration",
             "agent_count": "3",
             "mcp_server_count": "3",
-            "communication_pattern": "bidirectional handoffs"
-        }
+            "communication_pattern": "bidirectional handoffs",
+        },
     )
 
     print(f"✓ Created graph with {len(nodes)} nodes")
     print(f"✓ Created {len(agents)} agents:")
     for agent in agents:
         print(f"  - {agent.name} ({agent.llm_model})")
-    print(f"✓ Created {len(edges)} edges (including {sum(1 for e in edges if e.condition)} conditional)")
+    print(
+        f"✓ Created {len(edges)} edges (including {sum(1 for e in edges if e.condition)} conditional)"
+    )
     print(f"✓ Integrated {len([n for n in nodes if n.type == NodeType.MCP_SERVER])} MCP servers\n")
 
     return graph

@@ -11,6 +11,7 @@ from agentsec.models import (
 from agentsec.mappers import VulnerabilityMapper
 from agentsec.report import ReportGenerator
 
+
 def test_agentsec():
     print("🧪 Testing AgentSec Core Functionality\n")
 
@@ -19,45 +20,35 @@ def test_agentsec():
     graph = GraphDefinition(
         framework="LangGraph",
         nodes=[
-            NodeDefinition(
-                id="start",
-                name="START",
-                type=NodeType.BASIC,
-                description="Start node"
-            ),
+            NodeDefinition(id="start", name="START", type=NodeType.BASIC, description="Start node"),
             NodeDefinition(
                 id="agent1",
                 name="Research Agent",
                 type=NodeType.AGENT,
-                description="Agent that researches information"
+                description="Agent that researches information",
             ),
             NodeDefinition(
                 id="tool_search",
                 name="DuckDuckGoSearchRun",
                 type=NodeType.TOOL,
                 category=ToolCategory.WEB_SEARCH,
-                description="Web search tool"
+                description="Web search tool",
             ),
             NodeDefinition(
                 id="tool_python",
                 name="PythonREPL",
                 type=NodeType.TOOL,
                 category=ToolCategory.CODE_INTERPRETER,
-                description="Python code execution"
+                description="Python code execution",
             ),
             NodeDefinition(
                 id="tool_file",
                 name="FileReadTool",
                 type=NodeType.TOOL,
                 category=ToolCategory.DOCUMENT_LOADER,
-                description="File reading tool"
+                description="File reading tool",
             ),
-            NodeDefinition(
-                id="end",
-                name="END",
-                type=NodeType.BASIC,
-                description="End node"
-            ),
+            NodeDefinition(id="end", name="END", type=NodeType.BASIC, description="End node"),
         ],
         edges=[
             EdgeDefinition(source="start", target="agent1"),
@@ -71,9 +62,9 @@ def test_agentsec():
                 name="Research Agent",
                 llm_model="gpt-4",
                 system_prompt="You are a helpful research assistant.",
-                has_guardrails=False
+                has_guardrails=False,
             )
-        ]
+        ],
     )
 
     print(f"   ✓ Created graph with {len(graph.nodes)} nodes")
@@ -96,7 +87,9 @@ def test_agentsec():
             print(f"\n   🔧 {tool.name} ({tool.category.value}):")
             for vuln in tool.vulnerabilities:
                 print(f"      ⚠️  {vuln.name}")
-                frameworks = ", ".join(f"{k}: {v}" for k, v in vuln.security_framework_mapping.items())
+                frameworks = ", ".join(
+                    f"{k}: {v}" for k, v in vuln.security_framework_mapping.items()
+                )
                 if frameworks:
                     print(f"         {frameworks}")
 
@@ -105,6 +98,7 @@ def test_agentsec():
     # 4. Generate report
     print("4️⃣ Generating HTML report...")
     from pathlib import Path
+
     generator = ReportGenerator()
     generator.generate_html(graph, Path("test_functional_report.html"))
     print("   ✓ Report generated: test_functional_report.html\n")
@@ -135,4 +129,5 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"❌ Test failed: {e}")
         import traceback
+
         traceback.print_exc()

@@ -1,13 +1,16 @@
 from langgraph.graph import StateGraph, END
 
+
 # This would be imported from langchain in real code
 class DuckDuckGoSearchRun:
     def run(self, query):
         return "search results"
 
+
 class PythonREPLTool:
     def run(self, code):
         return eval(code)
+
 
 class FileReadTool:
     def read(self, path):

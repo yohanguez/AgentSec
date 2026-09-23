@@ -27,6 +27,7 @@ from langchain_core.tools import tool
 
 # ── Hardened tools (least privilege, no dangerous sinks) ────────────────────────
 
+
 @tool
 def classify_ticket(text: str) -> str:
     """Classify a support ticket into a category. Pure function — no I/O."""
@@ -64,8 +65,8 @@ def send_password_reset(to_address: str) -> str:
 
 llm = ChatOpenAI(model="gpt-4o")
 
-intake_agent = create_react_agent(llm, tools=[classify_ticket])       # untrusted in, nothing else
-data_agent = create_react_agent(llm, tools=[read_customer_record])    # private data, no comms
+intake_agent = create_react_agent(llm, tools=[classify_ticket])  # untrusted in, nothing else
+data_agent = create_react_agent(llm, tools=[read_customer_record])  # private data, no comms
 responder_agent = create_react_agent(llm, tools=[send_password_reset])  # templated comms only
 
 

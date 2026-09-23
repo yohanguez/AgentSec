@@ -1,6 +1,3 @@
-
-
-
 """AutoOps — an autonomous incident-response crew (INTENTIONALLY INSECURE demo).
 
 This is a realistic-looking multi-agent LangGraph workflow used to demonstrate
@@ -36,6 +33,7 @@ from langchain_core.tools import tool
 
 
 # ── Custom tools (capabilities inferred from these bodies via AST) ──────────
+
 
 @tool
 def fetch_ticket(url: str) -> str:
@@ -103,6 +101,7 @@ notify_agent = create_react_agent(llm, tools=[post_to_webhook])
 
 
 # ── Workflow graph ────────────────────────────────────────────────────────────
+
 
 def build() -> StateGraph:
     builder = StateGraph(dict)
