@@ -231,16 +231,71 @@ AgentSec/
 
 ```bash
 # Run all tests
+make test
+
+# Or with poetry
 poetry run pytest
 
-# Run with coverage
-poetry run pytest --cov=agentsec
+# Run with coverage report
+pytest --cov=agentsec --cov-report=html
 
 # Run specific test file
-poetry run pytest tests/test_models.py
+pytest tests/test_models.py
+
+# Run tests matching pattern
+pytest -k "test_capability"
 ```
 
 ## 🛠️ Development
+
+### Quick Start for Contributors
+
+```bash
+# 1. Clone and install
+git clone https://github.com/yohanguez/AgentSec.git
+cd AgentSec
+make install
+
+# 2. Install pre-commit hooks
+make hooks
+
+# 3. Run tests
+make test
+
+# 4. Format and lint code
+make format
+make lint
+
+# 5. Run demo
+make demo
+```
+
+### Development Workflow
+
+AgentSec uses a professional development setup:
+
+- **Code Formatting**: black (100 chars)
+- **Linting**: ruff
+- **Type Checking**: mypy
+- **Testing**: pytest with 80% coverage requirement
+- **Pre-commit Hooks**: Automatically format and check code before commit
+- **CI/CD**: GitHub Actions with multi-OS, multi-Python testing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+
+### Available Make Targets
+
+```bash
+make install    # Install all dependencies
+make test       # Run test suite with coverage
+make lint       # Check code quality
+make format     # Auto-format code
+make build      # Full pipeline (lint + test + wheel)
+make hooks      # Install git pre-commit hooks
+make clean      # Remove build artifacts
+make demo       # Run demo analysis
+make help       # Show all targets
+```
 
 ### Run Example Demos
 
@@ -290,11 +345,27 @@ AgentSec performs **static analysis only** - no code execution required. It:
 
 ## 📄 License
 
-This project is available for use as-is. See repository for details.
+Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for details.
+
+Copyright 2026 Imperva, Inc.
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit issues or pull requests.
+Contributions are welcome! We follow professional open source standards:
+
+1. **Read Guidelines**: See [CONTRIBUTING.md](CONTRIBUTING.md) for setup and workflow
+2. **Code Standards**: Format with black, lint with ruff, type-check with mypy
+3. **Testing Required**: 80% coverage minimum, all tests must pass
+4. **Security First**: Follow [SECURITY.md](SECURITY.md) for vulnerability reporting
+5. **Code of Conduct**: Respectful collaboration per [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+
+Quick contribution checklist:
+- [ ] Tests pass (`make test`)
+- [ ] Code formatted (`make format`)
+- [ ] Linting passes (`make lint`)
+- [ ] Coverage ≥80%
+- [ ] Commit messages follow conventional format
+- [ ] PR description explains what and why
 
 ## 📧 Contact
 
