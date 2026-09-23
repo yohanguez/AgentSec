@@ -31,15 +31,15 @@ class Capability(str, Enum):
     detection, and the lethal-trifecta verdict.
     """
 
-    CODE_EXEC = "code_exec"        # run arbitrary code (PythonREPL, interpreters)
-    SHELL_EXEC = "shell_exec"      # run shell commands (subprocess, os.system)
-    FS_READ = "fs_read"            # read files from disk
-    FS_WRITE = "fs_write"          # write/modify files on disk
-    DB_READ = "db_read"            # read from a database
-    DB_WRITE = "db_write"          # write to a database
+    CODE_EXEC = "code_exec"  # run arbitrary code (PythonREPL, interpreters)
+    SHELL_EXEC = "shell_exec"  # run shell commands (subprocess, os.system)
+    FS_READ = "fs_read"  # read files from disk
+    FS_WRITE = "fs_write"  # write/modify files on disk
+    DB_READ = "db_read"  # read from a database
+    DB_WRITE = "db_write"  # write to a database
     NETWORK_READ = "network_read"  # fetch external content (web search, HTTP GET)
     NETWORK_WRITE = "network_write"  # send data out (HTTP POST, webhooks)
-    EMAIL_SEND = "email_send"      # send email / messages
+    EMAIL_SEND = "email_send"  # send email / messages
     SECRETS_ACCESS = "secrets_access"  # read credentials / secrets
 
 
@@ -112,9 +112,7 @@ class NodeDefinition(BaseModel):
     id: str = Field(description="Unique identifier for the node")
     name: str = Field(description="Display name")
     type: NodeType = Field(description="Type of node")
-    category: ToolCategory = Field(
-        default=ToolCategory.DEFAULT, description="Category for tools"
-    )
+    category: ToolCategory = Field(default=ToolCategory.DEFAULT, description="Category for tools")
     description: Optional[str] = Field(default=None, description="Node description")
     vulnerabilities: List[Vulnerability] = Field(
         default_factory=list, description="Associated vulnerabilities"
@@ -178,9 +176,7 @@ class AgentDefinition(BaseModel):
     privilege_score: int = Field(
         default=0, description="Weighted privilege score (higher = more powerful)"
     )
-    privilege_grade: str = Field(
-        default="A", description="Letter grade A-F for privilege exposure"
-    )
+    privilege_grade: str = Field(default="A", description="Letter grade A-F for privilege exposure")
 
 
 class AttackPath(BaseModel):
@@ -214,29 +210,19 @@ class Finding(BaseModel):
 
 
 class GraphDefinition(BaseModel):
-    nodes: List[NodeDefinition] = Field(
-        default_factory=list, description="All nodes in the graph"
-    )
-    edges: List[EdgeDefinition] = Field(
-        default_factory=list, description="All edges in the graph"
-    )
+    nodes: List[NodeDefinition] = Field(default_factory=list, description="All nodes in the graph")
+    edges: List[EdgeDefinition] = Field(default_factory=list, description="All edges in the graph")
     agents: List[AgentDefinition] = Field(
         default_factory=list, description="All agents in the workflow"
     )
     framework: str = Field(description="Source framework name")
-    metadata: Dict[str, str] = Field(
-        default_factory=dict, description="Additional metadata"
-    )
+    metadata: Dict[str, str] = Field(default_factory=dict, description="Additional metadata")
     findings: List[Finding] = Field(
         default_factory=list, description="Audit findings for this workflow"
     )
 
     def get_tools(self) -> List[NodeDefinition]:
-        return [
-            node
-            for node in self.nodes
-            if node.type in [NodeType.TOOL, NodeType.CUSTOM_TOOL]
-        ]
+        return [node for node in self.nodes if node.type in [NodeType.TOOL, NodeType.CUSTOM_TOOL]]
 
     def get_mcp_servers(self) -> List[NodeDefinition]:
         return [node for node in self.nodes if node.type == NodeType.MCP_SERVER]

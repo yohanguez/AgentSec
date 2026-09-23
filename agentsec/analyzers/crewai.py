@@ -1,7 +1,8 @@
 import ast
-import yaml
 from pathlib import Path
 from typing import Dict, List
+
+import yaml
 
 from agentsec.analyzers.base import BaseAnalyzer
 from agentsec.models import (

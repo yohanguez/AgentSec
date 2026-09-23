@@ -4,9 +4,9 @@ from pathlib import Path
 import pytest
 
 pytest.importorskip("fastapi")
-from fastapi.testclient import TestClient  # noqa: E402
+from fastapi.testclient import TestClient
 
-from agentsec.server.app import create_app  # noqa: E402
+from agentsec.server.app import create_app
 
 DEMO = str(Path(__file__).parent.parent / "demo" / "autoops")
 
@@ -64,7 +64,9 @@ def test_console_page_and_graph(client):
 
 def test_console_rce_really_executes(client):
     presets = client.get("/console/presets").json()
-    r = client.post("/console/submit", json={"ticket": presets["rce"], "mode": "deterministic"}).json()
+    r = client.post(
+        "/console/submit", json={"ticket": presets["rce"], "mode": "deterministic"}
+    ).json()
     assert r["compromised"] is True
     assert "tool_run_shell_fix" in r["path_node_ids"]
     # a real file was created on disk (reported in a victim panel line)
@@ -73,14 +75,18 @@ def test_console_rce_really_executes(client):
 
 def test_console_exfil_reaches_attacker_c2(client):
     presets = client.get("/console/presets").json()
-    r = client.post("/console/submit", json={"ticket": presets["exfil"], "mode": "deterministic"}).json()
+    r = client.post(
+        "/console/submit", json={"ticket": presets["exfil"], "mode": "deterministic"}
+    ).json()
     assert r["compromised"] is True
     assert any(ev["panel"] and ev["panel"]["target"] == "c2" for ev in r["events"])
 
 
 def test_console_benign_ticket_not_compromised(client):
-    r = client.post("/console/submit",
-                    json={"ticket": "Hi, I forgot my password, can you help?", "mode": "deterministic"}).json()
+    r = client.post(
+        "/console/submit",
+        json={"ticket": "Hi, I forgot my password, can you help?", "mode": "deterministic"},
+    ).json()
     assert r["compromised"] is False
 
 

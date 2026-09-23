@@ -1,14 +1,12 @@
 """Tests for framework analyzers."""
 
-import pytest
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
 
-from agentsec.analyzers import LangGraphAnalyzer, CrewAIAnalyzer
+from agentsec.analyzers import CrewAIAnalyzer, LangGraphAnalyzer
 from agentsec.analyzers.autogen import AutogenAnalyzer
 from agentsec.analyzers.n8n import N8NAnalyzer
 from agentsec.analyzers.openai_agents import OpenAIAgentsAnalyzer
-from agentsec.models import GraphDefinition, NodeType, AgentDefinition
+from agentsec.models import GraphDefinition
 
 
 class TestLangGraphAnalyzer:
@@ -32,13 +30,15 @@ class TestLangGraphAnalyzer:
         """Test that analyzer finds Python workflow files."""
         # Create a mock workflow file
         workflow_file = tmp_path / "workflow.py"
-        workflow_file.write_text("""
+        workflow_file.write_text(
+            """
 from langgraph.prebuilt import create_react_agent
 from langchain_openai import ChatOpenAI
 
 llm = ChatOpenAI(model="gpt-4")
 agent = create_react_agent(llm, tools=[])
-""")
+"""
+        )
         analyzer = LangGraphAnalyzer(input_dir=tmp_path)
         assert len(list(tmp_path.glob("*.py"))) > 0
 
@@ -62,7 +62,8 @@ class TestCrewAIAnalyzer:
     def test_detects_crew_pattern(self, tmp_path):
         """Test detection of CrewAI patterns."""
         workflow_file = tmp_path / "crew.py"
-        workflow_file.write_text("""
+        workflow_file.write_text(
+            """
 from crewai import Agent, Task, Crew
 
 researcher = Agent(
@@ -72,7 +73,8 @@ researcher = Agent(
 )
 
 crew = Crew(agents=[researcher], tasks=[])
-""")
+"""
+        )
         analyzer = CrewAIAnalyzer(input_dir=tmp_path)
         # Just verify it doesn't crash
         assert analyzer is not None

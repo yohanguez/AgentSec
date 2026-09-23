@@ -1,8 +1,6 @@
 """Tests for utility modules."""
 
-import pytest
 import ast
-from pathlib import Path
 
 from agentsec.utils.ast_utils import (
     extract_function_calls,
@@ -11,8 +9,8 @@ from agentsec.utils.ast_utils import (
     parse_python_file,
 )
 from agentsec.utils.file_utils import (
-    find_python_files,
     find_json_files,
+    find_python_files,
     read_file_safe,
 )
 
@@ -23,10 +21,12 @@ class TestASTUtils:
     def test_parse_python_file(self, tmp_path):
         """Test parsing a Python file."""
         test_file = tmp_path / "test.py"
-        test_file.write_text("""
+        test_file.write_text(
+            """
 def hello():
     print("Hello, World!")
-""")
+"""
+        )
         tree = parse_python_file(test_file)
         assert tree is not None
         assert isinstance(tree, ast.Module)
@@ -149,7 +149,7 @@ class TestFileUtils:
     def test_find_json_files(self, tmp_path):
         """Test finding JSON files in directory."""
         (tmp_path / "data.json").write_text('{"key": "value"}')
-        (tmp_path / "config.json").write_text('{}')
+        (tmp_path / "config.json").write_text("{}")
         (tmp_path / "file.txt").write_text("Not JSON")
 
         json_files = find_json_files(tmp_path)
@@ -175,7 +175,7 @@ class TestFileUtils:
         try:
             content = read_file_safe(nonexistent)
             # May return None or empty string
-        except (FileNotFoundError, IOError):
+        except (OSError, FileNotFoundError):
             pass  # Expected
 
     def test_read_file_safe_encoding(self, tmp_path):

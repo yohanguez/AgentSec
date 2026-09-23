@@ -1,7 +1,5 @@
 """Tests for report generation."""
 
-import pytest
-from pathlib import Path
 import json
 
 from agentsec.models import (
@@ -29,17 +27,9 @@ class TestReportGenerator:
     def test_generate_html_report(self, tmp_path):
         """Test HTML report generation."""
         # Create a simple graph
-        node = NodeDefinition(
-            id="agent1",
-            name="Test Agent",
-            type=NodeType.AGENT
-        )
+        node = NodeDefinition(id="agent1", name="Test Agent", type=NodeType.AGENT)
 
-        graph = GraphDefinition(
-            framework="Test",
-            nodes=[node],
-            agents=[]
-        )
+        graph = GraphDefinition(framework="Test", nodes=[node], agents=[])
 
         output_file = tmp_path / "report.html"
         generator = ReportGenerator()
@@ -57,16 +47,10 @@ class TestReportGenerator:
     def test_generate_json_report(self, tmp_path):
         """Test JSON report generation."""
         node = NodeDefinition(
-            id="tool1",
-            name="Test Tool",
-            type=NodeType.TOOL,
-            category=ToolCategory.WEB_SEARCH
+            id="tool1", name="Test Tool", type=NodeType.TOOL, category=ToolCategory.WEB_SEARCH
         )
 
-        graph = GraphDefinition(
-            framework="TestFramework",
-            nodes=[node]
-        )
+        graph = GraphDefinition(framework="TestFramework", nodes=[node])
 
         output_file = tmp_path / "report.json"
         generator = ReportGenerator()
@@ -88,14 +72,10 @@ class TestReportGenerator:
             severity=Severity.HIGH,
             category="Test",
             description="Test description",
-            remediation="Test remediation"
+            remediation="Test remediation",
         )
 
-        graph = GraphDefinition(
-            framework="Test",
-            nodes=[],
-            findings=[finding]
-        )
+        graph = GraphDefinition(framework="Test", nodes=[], findings=[finding])
 
         output_file = tmp_path / "report.html"
         generator = ReportGenerator()
@@ -108,16 +88,10 @@ class TestReportGenerator:
     def test_report_includes_agents(self, tmp_path):
         """Test that report includes agent information."""
         agent = AgentDefinition(
-            name="Research Agent",
-            llm_model="gpt-4",
-            system_prompt="You are a research agent"
+            name="Research Agent", llm_model="gpt-4", system_prompt="You are a research agent"
         )
 
-        graph = GraphDefinition(
-            framework="Test",
-            nodes=[],
-            agents=[agent]
-        )
+        graph = GraphDefinition(framework="Test", nodes=[], agents=[agent])
 
         output_file = tmp_path / "report.html"
         generator = ReportGenerator()
@@ -129,12 +103,7 @@ class TestReportGenerator:
 
     def test_report_handles_empty_graph(self, tmp_path):
         """Test report generation with empty graph."""
-        graph = GraphDefinition(
-            framework="Empty",
-            nodes=[],
-            agents=[],
-            findings=[]
-        )
+        graph = GraphDefinition(framework="Empty", nodes=[], agents=[], findings=[])
 
         output_file = tmp_path / "empty_report.html"
         generator = ReportGenerator()
@@ -149,10 +118,7 @@ class TestReportGenerator:
         graph = GraphDefinition(
             framework="TestFramework",
             nodes=[],
-            metadata={
-                "version": "1.0",
-                "scan_date": "2026-09-23"
-            }
+            metadata={"version": "1.0", "scan_date": "2026-09-23"},
         )
 
         output_file = tmp_path / "report.html"
@@ -174,25 +140,13 @@ class TestGraphVisualizer:
 
     def test_generate_svg(self, tmp_path):
         """Test SVG generation."""
-        node1 = NodeDefinition(
-            id="node1",
-            name="Node 1",
-            type=NodeType.AGENT
-        )
+        node1 = NodeDefinition(id="node1", name="Node 1", type=NodeType.AGENT)
 
-        node2 = NodeDefinition(
-            id="node2",
-            name="Node 2",
-            type=NodeType.TOOL
-        )
+        node2 = NodeDefinition(id="node2", name="Node 2", type=NodeType.TOOL)
 
         edge = EdgeDefinition(source="node1", target="node2")
 
-        graph = GraphDefinition(
-            framework="Test",
-            nodes=[node1, node2],
-            edges=[edge]
-        )
+        graph = GraphDefinition(framework="Test", nodes=[node1, node2], edges=[edge])
 
         output_file = tmp_path / "graph.svg"
         visualizer = GraphVisualizer()
@@ -210,21 +164,14 @@ class TestGraphVisualizer:
             NodeDefinition(
                 id=f"node{i}",
                 name=f"Node {i}",
-                type=NodeType.AGENT if i % 2 == 0 else NodeType.TOOL
+                type=NodeType.AGENT if i % 2 == 0 else NodeType.TOOL,
             )
             for i in range(10)
         ]
 
-        edges = [
-            EdgeDefinition(source=f"node{i}", target=f"node{i+1}")
-            for i in range(9)
-        ]
+        edges = [EdgeDefinition(source=f"node{i}", target=f"node{i+1}") for i in range(9)]
 
-        graph = GraphDefinition(
-            framework="Complex",
-            nodes=nodes,
-            edges=edges
-        )
+        graph = GraphDefinition(framework="Complex", nodes=nodes, edges=edges)
 
         output_file = tmp_path / "complex_graph.svg"
         visualizer = GraphVisualizer()
@@ -235,18 +182,9 @@ class TestGraphVisualizer:
 
     def test_visualizer_highlights_attack_paths(self, tmp_path):
         """Test that attack paths are highlighted."""
-        source = NodeDefinition(
-            id="source",
-            name="Source",
-            type=NodeType.TOOL,
-            is_source=True
-        )
+        source = NodeDefinition(id="source", name="Source", type=NodeType.TOOL, is_source=True)
 
-        sink = NodeDefinition(
-            id="sink",
-            name="Sink",
-            type=NodeType.TOOL
-        )
+        sink = NodeDefinition(id="sink", name="Sink", type=NodeType.TOOL)
 
         edge = EdgeDefinition(source="source", target="sink")
 
@@ -257,14 +195,11 @@ class TestGraphVisualizer:
             category="Reachability",
             description="Test",
             remediation="Test",
-            node_ids=["source", "sink"]
+            node_ids=["source", "sink"],
         )
 
         graph = GraphDefinition(
-            framework="Test",
-            nodes=[source, sink],
-            edges=[edge],
-            findings=[finding]
+            framework="Test", nodes=[source, sink], edges=[edge], findings=[finding]
         )
 
         output_file = tmp_path / "highlighted_graph.svg"
@@ -284,10 +219,7 @@ class TestGraphVisualizer:
             NodeDefinition(id="mcp", name="MCP", type=NodeType.MCP_SERVER),
         ]
 
-        graph = GraphDefinition(
-            framework="Test",
-            nodes=nodes
-        )
+        graph = GraphDefinition(framework="Test", nodes=nodes)
 
         output_file = tmp_path / "styled_graph.svg"
         visualizer = GraphVisualizer()
@@ -298,10 +230,7 @@ class TestGraphVisualizer:
 
     def test_visualizer_empty_graph(self, tmp_path):
         """Test visualization of empty graph."""
-        graph = GraphDefinition(
-            framework="Empty",
-            nodes=[]
-        )
+        graph = GraphDefinition(framework="Empty", nodes=[])
 
         output_file = tmp_path / "empty_graph.svg"
         visualizer = GraphVisualizer()

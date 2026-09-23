@@ -11,7 +11,6 @@ and reproducible while producing real, observable effects.
 """
 
 import json
-import shutil
 import sqlite3
 import subprocess
 import tempfile
@@ -40,11 +39,14 @@ def _is_private_ip(host: str) -> bool:
             return False
     return False
 
-_FAKE_CREDS = json.dumps({
-    "AccessKeyId": "AKIAIOSFODNN7EXAMPLE",
-    "SecretAccessKey": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
-    "Token": "FQoGZXIvYXdzE...EXAMPLE",
-})
+
+_FAKE_CREDS = json.dumps(
+    {
+        "AccessKeyId": "AKIAIOSFODNN7EXAMPLE",
+        "SecretAccessKey": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+        "Token": "FQoGZXIvYXdzE...EXAMPLE",
+    }
+)
 
 
 class _C2Handler(BaseHTTPRequestHandler):
@@ -52,7 +54,9 @@ class _C2Handler(BaseHTTPRequestHandler):
         n = int(self.headers.get("Content-Length", 0))
         body = self.rfile.read(n).decode("utf-8", "replace")
         C2_CAPTURED.append(body)
-        self.send_response(200); self.end_headers(); self.wfile.write(b"ok")
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"ok")
 
     def log_message(self, *a):
         pass
@@ -61,10 +65,12 @@ class _C2Handler(BaseHTTPRequestHandler):
 class _MetadataHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         if "/latest/meta-data/iam/" in self.path:
-            self.send_response(200); self.end_headers()
+            self.send_response(200)
+            self.end_headers()
             self.wfile.write(_FAKE_CREDS.encode())
         else:
-            self.send_response(404); self.end_headers()
+            self.send_response(404)
+            self.end_headers()
 
     def log_message(self, *a):
         pass
@@ -87,8 +93,7 @@ class Sandbox:
         self._meta_srv, self.meta_port = _start(_MetadataHandler)
         self.c2_url = f"http://127.0.0.1:{self.c2_port}/exfil"
         self.metadata_url = (
-            f"http://127.0.0.1:{self.meta_port}"
-            "/latest/meta-data/iam/security-credentials/role"
+            f"http://127.0.0.1:{self.meta_port}" "/latest/meta-data/iam/security-credentials/role"
         )
         self.db = self.dir / "customers.db"
         self._seed_db()
@@ -124,9 +129,7 @@ class Sandbox:
 
     def read_customers(self) -> str:
         conn = sqlite3.connect(self.db)
-        rows = conn.execute(
-            "SELECT id,name,email,plan,notes FROM customers"
-        ).fetchall()
+        rows = conn.execute("SELECT id,name,email,plan,notes FROM customers").fetchall()
         conn.close()
         return json.dumps(rows)
 
@@ -151,9 +154,14 @@ class Sandbox:
     def is_blocked_host(url: str) -> bool:
         """True if a URL targets link-local / metadata / private space (SSRF guard)."""
         import re as _re
+
         m = _re.search(r"https?://([^/:]+)", url or "")
         host = m.group(1) if m else ""
-        if "169.254" in host or "metadata" in (url or "").lower() or "meta-data" in (url or "").lower():
+        if (
+            "169.254" in host
+            or "metadata" in (url or "").lower()
+            or "meta-data" in (url or "").lower()
+        ):
             return True
         return _is_private_ip(host)
 

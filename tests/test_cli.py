@@ -1,12 +1,12 @@
 """Tests for CLI commands."""
 
-import pytest
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import pytest
 from typer.testing import CliRunner
 
 from agentsec.cli.main import app
-
 
 runner = CliRunner()
 
@@ -28,30 +28,25 @@ class TestCLIScan:
 
     def test_scan_with_invalid_framework(self):
         """Test scan with invalid framework."""
-        result = runner.invoke(app, [
-            "scan", "invalidframework",
-            "-i", ".",
-            "-o", "report.html"
-        ])
+        result = runner.invoke(app, ["scan", "invalidframework", "-i", ".", "-o", "report.html"])
         # Should error
         assert result.exit_code != 0
 
-    @pytest.mark.parametrize("framework", [
-        "langgraph",
-        "crewai",
-        "autogen",
-        "n8n",
-        "openai",
-    ])
+    @pytest.mark.parametrize(
+        "framework",
+        [
+            "langgraph",
+            "crewai",
+            "autogen",
+            "n8n",
+            "openai",
+        ],
+    )
     def test_scan_with_valid_frameworks(self, framework, tmp_path):
         """Test scan command with each valid framework."""
         output = tmp_path / "test_report.html"
 
-        result = runner.invoke(app, [
-            "scan", framework,
-            "-i", str(tmp_path),
-            "-o", str(output)
-        ])
+        result = runner.invoke(app, ["scan", framework, "-i", str(tmp_path), "-o", str(output)])
 
         # Command should at least run without crashing
         # Exit code 0 means success, but might be != 0 for empty dirs
@@ -66,11 +61,9 @@ class TestCLIScan:
 
         output = tmp_path / "report.html"
 
-        result = runner.invoke(app, [
-            "scan", "langgraph",
-            "-i", str(workflow_dir),
-            "-o", str(output)
-        ])
+        result = runner.invoke(
+            app, ["scan", "langgraph", "-i", str(workflow_dir), "-o", str(output)]
+        )
 
         # Report should be created (even if empty)
         # Implementation may vary
@@ -84,12 +77,18 @@ class TestCLIScan:
 
         output = tmp_path / "report.json"
 
-        result = runner.invoke(app, [
-            "scan", "langgraph",
-            "-i", str(workflow_dir),
-            "-o", str(output),
-            "--export-graph-json"
-        ])
+        result = runner.invoke(
+            app,
+            [
+                "scan",
+                "langgraph",
+                "-i",
+                str(workflow_dir),
+                "-o",
+                str(output),
+                "--export-graph-json",
+            ],
+        )
 
         # Should attempt to create JSON
         if result.exit_code == 0:
@@ -100,22 +99,18 @@ class TestCLIScan:
         demo_path = Path("demo/autoops")
 
         if demo_path.exists():
-            result = runner.invoke(app, [
-                "scan", "langgraph",
-                "-i", str(demo_path),
-                "-o", "test_demo_report.html"
-            ])
+            result = runner.invoke(
+                app, ["scan", "langgraph", "-i", str(demo_path), "-o", "test_demo_report.html"]
+            )
 
             # Should successfully scan demo
             assert result.exit_code == 0 or "error" not in result.stdout.lower()
 
     def test_scan_nonexistent_input(self):
         """Test scan with nonexistent input directory."""
-        result = runner.invoke(app, [
-            "scan", "langgraph",
-            "-i", "/nonexistent/path",
-            "-o", "report.html"
-        ])
+        result = runner.invoke(
+            app, ["scan", "langgraph", "-i", "/nonexistent/path", "-o", "report.html"]
+        )
 
         # Should handle error gracefully
         assert result.exit_code != 0 or True
@@ -212,23 +207,23 @@ class TestCLIIntegration:
         workflow_dir.mkdir()
 
         workflow_file = workflow_dir / "workflow.py"
-        workflow_file.write_text("""
+        workflow_file.write_text(
+            """
 from langgraph.prebuilt import create_react_agent
 from langchain_openai import ChatOpenAI
 
 llm = ChatOpenAI(model="gpt-4")
 agent = create_react_agent(llm, tools=[])
-""")
+"""
+        )
 
         output_html = tmp_path / "report.html"
         output_json = tmp_path / "report.json"
 
         # Run scan
-        result = runner.invoke(app, [
-            "scan", "langgraph",
-            "-i", str(workflow_dir),
-            "-o", str(output_html)
-        ])
+        result = runner.invoke(
+            app, ["scan", "langgraph", "-i", str(workflow_dir), "-o", str(output_html)]
+        )
 
         # Should complete
         if result.exit_code == 0:
@@ -238,20 +233,14 @@ agent = create_react_agent(llm, tools=[])
     def test_scan_preserves_exit_codes(self, tmp_path):
         """Test that CLI preserves appropriate exit codes."""
         # Success case
-        result = runner.invoke(app, [
-            "scan", "langgraph",
-            "-i", str(tmp_path),
-            "-o", "report.html"
-        ])
+        result = runner.invoke(app, ["scan", "langgraph", "-i", str(tmp_path), "-o", "report.html"])
         # Should be 0 or 1 (depending on findings)
         assert result.exit_code in [0, 1]
 
         # Error case
-        result = runner.invoke(app, [
-            "scan", "invalidframework",
-            "-i", str(tmp_path),
-            "-o", "report.html"
-        ])
+        result = runner.invoke(
+            app, ["scan", "invalidframework", "-i", str(tmp_path), "-o", "report.html"]
+        )
         # Should be non-zero error
         assert result.exit_code != 0
 

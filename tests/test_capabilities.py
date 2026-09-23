@@ -1,18 +1,17 @@
 """Tests for capability detection and assignment."""
 
-import pytest
 from pathlib import Path
 
+from agentsec.audit.capabilities import CapabilityAssigner
 from agentsec.models import (
+    EXFIL_CAPABILITIES,
+    PRIVATE_DATA_CAPABILITIES,
+    SINK_CAPABILITIES,
     Capability,
     NodeDefinition,
     NodeType,
     ToolCategory,
-    SINK_CAPABILITIES,
-    EXFIL_CAPABILITIES,
-    PRIVATE_DATA_CAPABILITIES,
 )
-from agentsec.audit.capabilities import CapabilityAssigner
 
 
 def test_sink_capabilities():
@@ -45,8 +44,10 @@ def test_private_data_capabilities():
 def test_node_sink_detection():
     """Test node sink capability detection."""
     node = NodeDefinition(
-        id="test", name="Test", type=NodeType.TOOL,
-        capabilities=[Capability.CODE_EXEC, Capability.FS_READ]
+        id="test",
+        name="Test",
+        type=NodeType.TOOL,
+        capabilities=[Capability.CODE_EXEC, Capability.FS_READ],
     )
     assert node.is_sink()
     sink_caps = node.sink_capabilities()
@@ -57,8 +58,10 @@ def test_node_sink_detection():
 def test_node_not_sink():
     """Test node without sink capabilities."""
     node = NodeDefinition(
-        id="test", name="Test", type=NodeType.TOOL,
-        capabilities=[Capability.FS_READ, Capability.NETWORK_READ]
+        id="test",
+        name="Test",
+        type=NodeType.TOOL,
+        capabilities=[Capability.FS_READ, Capability.NETWORK_READ],
     )
     assert not node.is_sink()
     assert len(node.sink_capabilities()) == 0
@@ -77,24 +80,21 @@ def test_assign_known_tool_capabilities():
 
     # Python REPL tool
     node = NodeDefinition(
-        id="repl", name="PythonREPL", type=NodeType.TOOL,
-        category=ToolCategory.CODE_INTERPRETER
+        id="repl", name="PythonREPL", type=NodeType.TOOL, category=ToolCategory.CODE_INTERPRETER
     )
     assigner.assign_capabilities(node)
     assert Capability.CODE_EXEC in node.capabilities
 
     # Shell tool
     node = NodeDefinition(
-        id="shell", name="ShellTool", type=NodeType.TOOL,
-        category=ToolCategory.SHELL
+        id="shell", name="ShellTool", type=NodeType.TOOL, category=ToolCategory.SHELL
     )
     assigner.assign_capabilities(node)
     assert Capability.SHELL_EXEC in node.capabilities
 
     # Web search tool
     node = NodeDefinition(
-        id="search", name="DuckDuckGoSearch", type=NodeType.TOOL,
-        category=ToolCategory.WEB_SEARCH
+        id="search", name="DuckDuckGoSearch", type=NodeType.TOOL, category=ToolCategory.WEB_SEARCH
     )
     assigner.assign_capabilities(node)
     assert Capability.NETWORK_READ in node.capabilities
@@ -105,8 +105,7 @@ def test_assign_database_tool_capabilities():
     assigner = CapabilityAssigner(input_dir=Path("."))
 
     node = NodeDefinition(
-        id="db", name="DatabaseQuery", type=NodeType.TOOL,
-        category=ToolCategory.DATABASE
+        id="db", name="DatabaseQuery", type=NodeType.TOOL, category=ToolCategory.DATABASE
     )
     assigner.assign_capabilities(node)
     assert Capability.DB_READ in node.capabilities or Capability.DB_WRITE in node.capabilities
@@ -117,13 +116,14 @@ def test_assign_http_tool_capabilities():
     assigner = CapabilityAssigner(input_dir=Path("."))
 
     node = NodeDefinition(
-        id="http", name="HTTPRequest", type=NodeType.TOOL,
-        category=ToolCategory.HTTP_REQUEST
+        id="http", name="HTTPRequest", type=NodeType.TOOL, category=ToolCategory.HTTP_REQUEST
     )
     assigner.assign_capabilities(node)
     # HTTP tools can read and potentially write
-    assert Capability.NETWORK_READ in node.capabilities or \
-           Capability.NETWORK_WRITE in node.capabilities
+    assert (
+        Capability.NETWORK_READ in node.capabilities
+        or Capability.NETWORK_WRITE in node.capabilities
+    )
 
 
 def test_multiple_capabilities():
@@ -136,7 +136,7 @@ def test_multiple_capabilities():
             Capability.FS_READ,
             Capability.FS_WRITE,
             Capability.NETWORK_READ,
-        ]
+        ],
     )
     assert len(node.capabilities) == 3
     assert node.is_sink()  # FS_WRITE makes it a sink
@@ -145,10 +145,7 @@ def test_multiple_capabilities():
 def test_custom_tool_capabilities():
     """Test that custom tools can be assigned capabilities."""
     node = NodeDefinition(
-        id="custom",
-        name="CustomTool",
-        type=NodeType.CUSTOM_TOOL,
-        capabilities=[]
+        id="custom", name="CustomTool", type=NodeType.CUSTOM_TOOL, capabilities=[]
     )
     # Custom tools start with no capabilities
     assert len(node.capabilities) == 0

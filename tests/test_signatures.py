@@ -1,11 +1,9 @@
 """Tests for AST signature detection."""
 
-import pytest
 import ast
-from pathlib import Path
 
+from agentsec.audit.signatures import ASTSignatureVisitor, SignatureDetector
 from agentsec.models import Capability
-from agentsec.audit.signatures import SignatureDetector, ASTSignatureVisitor
 
 
 class TestSignatureDetector:
@@ -97,10 +95,12 @@ import os
     def test_detect_from_file(self, tmp_path):
         """Test detection from a file."""
         test_file = tmp_path / "test.py"
-        test_file.write_text("""
+        test_file.write_text(
+            """
 import subprocess
 subprocess.run(['ls'])
-""")
+"""
+        )
         detector = SignatureDetector()
         capabilities = detector.detect_from_file(test_file)
         assert Capability.SHELL_EXEC in capabilities

@@ -1,6 +1,5 @@
 """Extended tests for data models."""
 
-import pytest
 
 from agentsec.models import (
     AgentDefinition,
@@ -16,7 +15,6 @@ from agentsec.models import (
     Severity,
     ToolCategory,
     TrustLevel,
-    Vulnerability,
 )
 
 
@@ -35,7 +33,7 @@ class TestNodeDefinition:
             is_source=True,
             trust=TrustLevel.UNTRUSTED,
             data_class=DataClass.PRIVATE,
-            signature_evidence=["eval() at line 42"]
+            signature_evidence=["eval() at line 42"],
         )
 
         assert node.id == "test"
@@ -60,12 +58,7 @@ class TestNodeDefinition:
         ]
 
         for caps, expected_is_sink in test_cases:
-            node = NodeDefinition(
-                id="test",
-                name="Test",
-                type=NodeType.TOOL,
-                capabilities=caps
-            )
+            node = NodeDefinition(id="test", name="Test", type=NodeType.TOOL, capabilities=caps)
             assert node.is_sink() == expected_is_sink
 
     def test_node_types(self):
@@ -79,11 +72,7 @@ class TestNodeDefinition:
         ]
 
         for node_type in types:
-            node = NodeDefinition(
-                id="test",
-                name="Test",
-                type=node_type
-            )
+            node = NodeDefinition(id="test", name="Test", type=node_type)
             assert node.type == node_type
 
     def test_tool_categories(self):
@@ -101,12 +90,7 @@ class TestNodeDefinition:
         ]
 
         for category in categories:
-            node = NodeDefinition(
-                id="test",
-                name="Test",
-                type=NodeType.TOOL,
-                category=category
-            )
+            node = NodeDefinition(id="test", name="Test", type=NodeType.TOOL, category=category)
             assert node.category == category
 
 
@@ -115,11 +99,7 @@ class TestEdgeDefinition:
 
     def test_edge_with_condition(self):
         """Test edge with routing condition."""
-        edge = EdgeDefinition(
-            source="agent",
-            target="tool",
-            condition="if approval_needed"
-        )
+        edge = EdgeDefinition(source="agent", target="tool", condition="if approval_needed")
 
         assert edge.source == "agent"
         assert edge.target == "tool"
@@ -137,9 +117,7 @@ class TestAgentDefinition:
     def test_agent_with_guardrails(self):
         """Test agent with guardrails enabled."""
         agent = AgentDefinition(
-            name="Safe Agent",
-            has_guardrails=True,
-            system_prompt="You must not execute code"
+            name="Safe Agent", has_guardrails=True, system_prompt="You must not execute code"
         )
 
         assert agent.has_guardrails
@@ -152,7 +130,7 @@ class TestAgentDefinition:
             direct_capabilities=[Capability.FS_READ],
             reachable_capabilities=[Capability.FS_READ, Capability.CODE_EXEC],
             privilege_score=150,
-            privilege_grade="D"
+            privilege_grade="D",
         )
 
         assert agent.privilege_score == 150
@@ -162,9 +140,7 @@ class TestAgentDefinition:
     def test_agent_tool_association(self):
         """Test agent-tool associations."""
         agent = AgentDefinition(
-            name="Agent",
-            node_id="agent1",
-            tool_ids=["tool1", "tool2", "tool3"]
+            name="Agent", node_id="agent1", tool_ids=["tool1", "tool2", "tool3"]
         )
 
         assert agent.node_id == "agent1"
@@ -182,7 +158,7 @@ class TestAttackPath:
             sink_id="exec",
             node_ids=["input", "agent", "tool", "exec"],
             sink_capability=Capability.CODE_EXEC,
-            confidence=Confidence.HIGH
+            confidence=Confidence.HIGH,
         )
 
         assert path.source_id == "input"
@@ -198,7 +174,7 @@ class TestAttackPath:
             sink_id="sink",
             node_ids=["source", "sink"],
             sink_capability=Capability.SHELL_EXEC,
-            confidence=Confidence.HIGH
+            confidence=Confidence.HIGH,
         )
 
         assert len(path.node_ids) == 2
@@ -225,7 +201,7 @@ class TestFinding:
                 severity=severity,
                 category="Test",
                 description="Test",
-                remediation="Test"
+                remediation="Test",
             )
             assert finding.severity == severity
 
@@ -236,7 +212,7 @@ class TestFinding:
             sink_id="snk",
             node_ids=["src", "snk"],
             sink_capability=Capability.CODE_EXEC,
-            confidence=Confidence.HIGH
+            confidence=Confidence.HIGH,
         )
 
         finding = Finding(
@@ -247,14 +223,10 @@ class TestFinding:
             category="Injection",
             description="Detailed description",
             remediation="Step-by-step fix",
-            security_framework_mapping={
-                "OWASP": "LLM01",
-                "CWE": "CWE-94",
-                "MITRE": "T1059"
-            },
+            security_framework_mapping={"OWASP": "LLM01", "CWE": "CWE-94", "MITRE": "T1059"},
             agent_name="VulnerableAgent",
             node_ids=["src", "agent", "snk"],
-            path=path
+            path=path,
         )
 
         assert finding.id == "FULL-001"
@@ -274,10 +246,7 @@ class TestGraphDefinition:
             NodeDefinition(id="node2", name="Node 2", type=NodeType.TOOL),
         ]
 
-        graph = GraphDefinition(
-            framework="Test",
-            nodes=nodes
-        )
+        graph = GraphDefinition(framework="Test", nodes=nodes)
 
         node = graph.get_node("node1")
         assert node is not None
@@ -294,10 +263,7 @@ class TestGraphDefinition:
             NodeDefinition(id="tool", name="Tool", type=NodeType.TOOL),
         ]
 
-        graph = GraphDefinition(
-            framework="Test",
-            nodes=nodes
-        )
+        graph = GraphDefinition(framework="Test", nodes=nodes)
 
         mcps = graph.get_mcp_servers()
         assert len(mcps) == 2
@@ -312,7 +278,7 @@ class TestGraphDefinition:
                 severity=Severity.CRITICAL,
                 category="Test",
                 description="Test",
-                remediation="Test"
+                remediation="Test",
             ),
             Finding(
                 id="F2",
@@ -320,7 +286,7 @@ class TestGraphDefinition:
                 severity=Severity.HIGH,
                 category="Test",
                 description="Test",
-                remediation="Test"
+                remediation="Test",
             ),
             Finding(
                 id="F3",
@@ -328,15 +294,11 @@ class TestGraphDefinition:
                 severity=Severity.HIGH,
                 category="Test",
                 description="Test",
-                remediation="Test"
+                remediation="Test",
             ),
         ]
 
-        graph = GraphDefinition(
-            framework="Test",
-            nodes=[],
-            findings=findings
-        )
+        graph = GraphDefinition(framework="Test", nodes=[], findings=findings)
 
         critical = graph.get_findings_by_severity(Severity.CRITICAL)
         assert len(critical) == 1
@@ -351,7 +313,7 @@ class TestGraphDefinition:
             sink_id="k1",
             node_ids=["s1", "a1", "k1"],
             sink_capability=Capability.CODE_EXEC,
-            confidence=Confidence.HIGH
+            confidence=Confidence.HIGH,
         )
 
         path2 = AttackPath(
@@ -359,7 +321,7 @@ class TestGraphDefinition:
             sink_id="k2",
             node_ids=["s2", "a2", "k2"],
             sink_capability=Capability.SHELL_EXEC,
-            confidence=Confidence.MEDIUM
+            confidence=Confidence.MEDIUM,
         )
 
         findings = [
@@ -370,7 +332,7 @@ class TestGraphDefinition:
                 category="Test",
                 description="Test",
                 remediation="Test",
-                path=path1
+                path=path1,
             ),
             Finding(
                 id="F2",
@@ -379,15 +341,11 @@ class TestGraphDefinition:
                 category="Test",
                 description="Test",
                 remediation="Test",
-                path=path2
+                path=path2,
             ),
         ]
 
-        graph = GraphDefinition(
-            framework="Test",
-            nodes=[],
-            findings=findings
-        )
+        graph = GraphDefinition(framework="Test", nodes=[], findings=findings)
 
         path_nodes = graph.attack_path_node_ids()
         # Should include nodes from both paths
@@ -399,11 +357,7 @@ class TestGraphDefinition:
         graph = GraphDefinition(
             framework="Test",
             nodes=[],
-            metadata={
-                "version": "1.0",
-                "scan_date": "2026-09-23",
-                "custom_field": "custom_value"
-            }
+            metadata={"version": "1.0", "scan_date": "2026-09-23", "custom_field": "custom_value"},
         )
 
         assert graph.metadata["version"] == "1.0"

@@ -1,15 +1,11 @@
 """Tests for privilege scoring and grading."""
 
-import pytest
 
+from agentsec.audit.privilege import PrivilegeScorer
 from agentsec.models import (
     AgentDefinition,
     Capability,
-    GraphDefinition,
-    NodeDefinition,
-    NodeType,
 )
-from agentsec.audit.privilege import PrivilegeScorer
 
 
 class TestPrivilegeScorer:
@@ -55,9 +51,7 @@ class TestPrivilegeScorer:
         score = scorer.calculate_score(capabilities)
 
         # Score should be sum of individual weights
-        individual_scores = [
-            scorer.calculate_score([cap]) for cap in capabilities
-        ]
+        individual_scores = [scorer.calculate_score([cap]) for cap in capabilities]
         # Total score should be >= any individual score
         for individual in individual_scores:
             assert score >= individual
@@ -69,7 +63,7 @@ class TestPrivilegeScorer:
         score = scorer.calculate_score(capabilities)
         grade = scorer.assign_grade(score)
         # Low score should give good grade
-        assert grade in ['A', 'B']
+        assert grade in ["A", "B"]
 
     def test_grade_assignment_f(self):
         """Test grade F assignment (excessive privileges)."""
@@ -85,7 +79,7 @@ class TestPrivilegeScorer:
         score = scorer.calculate_score(capabilities)
         grade = scorer.assign_grade(score)
         # High score should give bad grade
-        assert grade in ['D', 'E', 'F']
+        assert grade in ["D", "E", "F"]
 
     def test_grade_ordering(self):
         """Test that grades follow expected ordering."""
@@ -130,8 +124,7 @@ class TestPrivilegeScorer:
     def test_agent_privilege_update(self):
         """Test updating an agent with privilege information."""
         agent = AgentDefinition(
-            name="TestAgent",
-            direct_capabilities=[Capability.FS_READ, Capability.FS_WRITE]
+            name="TestAgent", direct_capabilities=[Capability.FS_READ, Capability.FS_WRITE]
         )
 
         scorer = PrivilegeScorer()
@@ -142,7 +135,7 @@ class TestPrivilegeScorer:
         agent.privilege_grade = grade
 
         assert agent.privilege_score > 0
-        assert agent.privilege_grade in ['A', 'B', 'C', 'D', 'E', 'F']
+        assert agent.privilege_grade in ["A", "B", "C", "D", "E", "F"]
 
     def test_all_grades_possible(self):
         """Test that all grades A-F can be assigned."""
@@ -150,12 +143,11 @@ class TestPrivilegeScorer:
 
         # Create capability sets for each grade
         grade_tests = [
-            ([Capability.NETWORK_READ], ['A', 'B']),
-            ([Capability.FS_READ, Capability.DB_READ], ['B', 'C']),
-            ([Capability.FS_WRITE, Capability.DB_WRITE], ['C', 'D']),
-            ([Capability.CODE_EXEC], ['D', 'E', 'F']),
-            ([Capability.CODE_EXEC, Capability.SHELL_EXEC,
-              Capability.SECRETS_ACCESS], ['E', 'F']),
+            ([Capability.NETWORK_READ], ["A", "B"]),
+            ([Capability.FS_READ, Capability.DB_READ], ["B", "C"]),
+            ([Capability.FS_WRITE, Capability.DB_WRITE], ["C", "D"]),
+            ([Capability.CODE_EXEC], ["D", "E", "F"]),
+            ([Capability.CODE_EXEC, Capability.SHELL_EXEC, Capability.SECRETS_ACCESS], ["E", "F"]),
         ]
 
         seen_grades = set()
@@ -174,7 +166,7 @@ class TestPrivilegeScorer:
                 Capability.FS_READ,
                 Capability.CODE_EXEC,  # Via handoff
                 Capability.SHELL_EXEC,  # Via handoff
-            ]
+            ],
         )
 
         scorer = PrivilegeScorer()

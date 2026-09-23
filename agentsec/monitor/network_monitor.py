@@ -12,14 +12,13 @@ adapted from the MIT-licensed ``agent-discover-scanner`` by DefendAI
 connection-observation core and made Python 3.9 compatible.
 """
 
+import json
 import socket
 import time
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
-
-import json
 
 try:
     import psutil
@@ -169,7 +168,9 @@ class NetworkMonitor:
                 if key not in seen:
                     seen.add(key)
                     connections.append(c)
-                    print(f"[DETECT] {c.service} ← {c.process_name} (pid {c.pid}) → {c.remote_host}:{c.remote_port}")
+                    print(
+                        f"[DETECT] {c.service} ← {c.process_name} (pid {c.pid}) → {c.remote_host}:{c.remote_port}"
+                    )
             time.sleep(interval_seconds)
         summary = self._summary(connections, duration_seconds)
         summary["inaccessible_processes"] = self.access_denied

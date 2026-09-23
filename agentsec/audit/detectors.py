@@ -7,19 +7,19 @@ Three detectors, in increasing order of severity:
   * lethal_trifecta    - one agent has private data + untrusted input + exfil
 """
 
-from typing import Dict, List
+from typing import List
 
 from agentsec.models import (
+    EXFIL_CAPABILITIES,
+    PRIVATE_DATA_CAPABILITIES,
+    SINK_CAPABILITIES,
     AgentDefinition,
     AttackPath,
     Capability,
     Confidence,
-    EXFIL_CAPABILITIES,
     Finding,
     GraphDefinition,
-    PRIVATE_DATA_CAPABILITIES,
     Severity,
-    SINK_CAPABILITIES,
 )
 
 # Capabilities that on their own represent root-equivalent power.
@@ -152,15 +152,13 @@ def detect_attack_paths(graph: GraphDefinition, paths: List[AttackPath]) -> List
         if not src or not sink:
             continue
         readable = " -> ".join(
-            (graph.get_node(nid).name if graph.get_node(nid) else nid)
-            for nid in path.node_ids
+            (graph.get_node(nid).name if graph.get_node(nid) else nid) for nid in path.node_ids
         )
         sev = Severity.CRITICAL if path.confidence == Confidence.HIGH else Severity.HIGH
         findings.append(
             Finding(
                 id="AGS-PATH-%02d" % i,
-                title="Untrusted input reaches %s (%s)"
-                % (_label(path.sink_capability), sink.name),
+                title="Untrusted input reaches %s (%s)" % (_label(path.sink_capability), sink.name),
                 severity=sev,
                 confidence=path.confidence,
                 category="Dangerous Reachable Path",

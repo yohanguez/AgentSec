@@ -37,8 +37,8 @@ def test_signature_evidence_is_recorded():
 # ---------------------------------------------------------------- report card
 def test_report_card_grades(audited):
     grades = {a.name: a.privilege_grade for a in audited.agents}
-    assert grades["remediation"] == "F"       # code + shell + fs_write
-    assert grades["notify"] in ("A", "B")      # only network_write
+    assert grades["remediation"] == "F"  # code + shell + fs_write
+    assert grades["notify"] in ("A", "B")  # only network_write
     # triage holds db_read + email_send + network_read
     assert grades["triage"] in ("C", "D")
 

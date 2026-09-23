@@ -86,8 +86,7 @@ def scan(
 
     if len(graph.nodes) < 3:
         typer.echo(
-            f"⚠️  No significant workflow found in {input_dir} "
-            f"(only {len(graph.nodes)} nodes).",
+            f"⚠️  No significant workflow found in {input_dir} " f"(only {len(graph.nodes)} nodes).",
             err=True,
         )
         raise typer.Exit(1)

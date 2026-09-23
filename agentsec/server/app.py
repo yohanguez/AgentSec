@@ -85,9 +85,7 @@ def create_app(db_path: Optional[Path] = None) -> FastAPI:
     # ---------------------------------------------------------------- pages
     @app.get("/", response_class=HTMLResponse)
     def dashboard():
-        return env.get_template("dashboard.html").render(
-            runs=store.list(), version=__version__
-        )
+        return env.get_template("dashboard.html").render(runs=store.list(), version=__version__)
 
     @app.get("/scan/{run_id}", response_class=HTMLResponse)
     def scan_page(run_id: str):
@@ -173,10 +171,15 @@ def create_app(db_path: Optional[Path] = None) -> FastAPI:
                 owner[tid] = a.node_id
         return {
             "nodes": [
-                {"id": n.id, "name": n.name, "type": n.type.value,
-                 "capabilities": [c.value for c in n.capabilities],
-                 "is_source": n.is_source, "grade": grade.get(n.id),
-                 "owner": owner.get(n.id)}
+                {
+                    "id": n.id,
+                    "name": n.name,
+                    "type": n.type.value,
+                    "capabilities": [c.value for c in n.capabilities],
+                    "is_source": n.is_source,
+                    "grade": grade.get(n.id),
+                    "owner": owner.get(n.id),
+                }
                 for n in graph.nodes
             ],
             "edges": [{"source": e.source, "target": e.target} for e in graph.edges],
@@ -203,18 +206,22 @@ def create_app(db_path: Optional[Path] = None) -> FastAPI:
     @app.post("/console/submit")
     def console_submit(req: ConsoleRequest):
         from agentsec.server.console import (
-            ConsoleAgent, SecureConsoleAgent, run_llm, run_ollama, run_ollama_secure,
+            ConsoleAgent,
+            SecureConsoleAgent,
+            run_llm,
+            run_ollama,
+            run_ollama_secure,
         )
 
         # Two orthogonal axes: agent (vulnerable|hardened) × brain (rule|llm).
         # `mode` encodes the combination.
-        if req.mode == "secure_llm":       # hardened agent, real LLM
+        if req.mode == "secure_llm":  # hardened agent, real LLM
             return run_ollama_secure(req.ticket)
-        if req.mode == "secure":           # hardened agent, rule-based
+        if req.mode == "secure":  # hardened agent, rule-based
             return SecureConsoleAgent().run(req.ticket)
-        if req.mode == "ollama":           # vulnerable agent, real LLM
+        if req.mode == "ollama":  # vulnerable agent, real LLM
             return run_ollama(req.ticket)
-        if req.mode == "llm":              # vulnerable agent, OpenAI
+        if req.mode == "llm":  # vulnerable agent, OpenAI
             return run_llm(req.ticket)
         return ConsoleAgent().run(req.ticket)  # vulnerable agent, rule-based
 

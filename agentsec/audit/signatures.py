@@ -19,7 +19,6 @@ from typing import Dict, List, Optional, Set
 from agentsec.models import Capability
 from agentsec.utils import find_python_files, parse_python_file
 
-
 # Dotted-call patterns -> capability. Matched against the "a.b.c" form of a call.
 _DOTTED_PATTERNS = {
     Capability.SHELL_EXEC: (
@@ -130,9 +129,9 @@ class _BodyVisitor(ast.NodeVisitor):
         # dotted forms (cursor.execute, conn.execute, …) AND any `<x>.execute("<SQL>")`
         # so we aren't fooled by the cursor variable's name (cur, c, …).
         sql = (self._string_arg_at(node, 0) or "").lower()
-        sql_like = any(k in sql for k in
-                       ("select ", "insert ", "update ", "delete ", " from ", " where ")) \
-            or any(h in sql for h in _WRITE_SQL_HINTS)
+        sql_like = any(
+            k in sql for k in ("select ", "insert ", "update ", "delete ", " from ", " where ")
+        ) or any(h in sql for h in _WRITE_SQL_HINTS)
         if dotted in _DOTTED_PATTERNS[Capability.DB_READ] or (bare == "execute" and sql_like):
             self._add(Capability.DB_READ, "executes a database query")
             if any(h in sql for h in _WRITE_SQL_HINTS):

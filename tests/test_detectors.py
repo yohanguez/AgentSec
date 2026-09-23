@@ -1,24 +1,23 @@
 """Tests for security finding detectors."""
 
-import pytest
 
+from agentsec.audit.detectors import (
+    DangerousPathDetector,
+    ExcessiveAgencyDetector,
+    LethalTrifectaDetector,
+)
 from agentsec.models import (
     AgentDefinition,
     AttackPath,
     Capability,
     Confidence,
+    DataClass,
     Finding,
     GraphDefinition,
     NodeDefinition,
     NodeType,
     Severity,
     TrustLevel,
-    DataClass,
-)
-from agentsec.audit.detectors import (
-    ExcessiveAgencyDetector,
-    LethalTrifectaDetector,
-    DangerousPathDetector,
 )
 
 
@@ -32,14 +31,8 @@ class TestExcessiveAgencyDetector:
 
     def test_detect_code_exec_excessive_agency(self):
         """Test detection of agent with code execution."""
-        agent = AgentDefinition(
-            name="DangerousAgent",
-            direct_capabilities=[Capability.CODE_EXEC]
-        )
-        graph = GraphDefinition(
-            framework="Test",
-            agents=[agent]
-        )
+        agent = AgentDefinition(name="DangerousAgent", direct_capabilities=[Capability.CODE_EXEC])
+        graph = GraphDefinition(framework="Test", agents=[agent])
 
         detector = ExcessiveAgencyDetector()
         findings = detector.detect(graph)
@@ -50,14 +43,8 @@ class TestExcessiveAgencyDetector:
 
     def test_detect_shell_exec_excessive_agency(self):
         """Test detection of agent with shell execution."""
-        agent = AgentDefinition(
-            name="ShellAgent",
-            direct_capabilities=[Capability.SHELL_EXEC]
-        )
-        graph = GraphDefinition(
-            framework="Test",
-            agents=[agent]
-        )
+        agent = AgentDefinition(name="ShellAgent", direct_capabilities=[Capability.SHELL_EXEC])
+        graph = GraphDefinition(framework="Test", agents=[agent])
 
         detector = ExcessiveAgencyDetector()
         findings = detector.detect(graph)
@@ -66,21 +53,16 @@ class TestExcessiveAgencyDetector:
 
     def test_no_excessive_agency_for_safe_agent(self):
         """Test that safe agents don't trigger detection."""
-        agent = AgentDefinition(
-            name="SafeAgent",
-            direct_capabilities=[Capability.NETWORK_READ]
-        )
-        graph = GraphDefinition(
-            framework="Test",
-            agents=[agent]
-        )
+        agent = AgentDefinition(name="SafeAgent", direct_capabilities=[Capability.NETWORK_READ])
+        graph = GraphDefinition(framework="Test", agents=[agent])
 
         detector = ExcessiveAgencyDetector()
         findings = detector.detect(graph)
 
         # Should not find excessive agency for read-only
         excessive_findings = [
-            f for f in findings
+            f
+            for f in findings
             if "excessive" in f.title.lower() or "excessive" in f.category.lower()
         ]
         assert len(excessive_findings) == 0
@@ -94,12 +76,9 @@ class TestExcessiveAgencyDetector:
                 Capability.SHELL_EXEC,
                 Capability.DB_WRITE,
                 Capability.FS_WRITE,
-            ]
+            ],
         )
-        graph = GraphDefinition(
-            framework="Test",
-            agents=[agent]
-        )
+        graph = GraphDefinition(framework="Test", agents=[agent])
 
         detector = ExcessiveAgencyDetector()
         findings = detector.detect(graph)
@@ -130,7 +109,7 @@ class TestLethalTrifectaDetector:
                 Capability.NETWORK_WRITE,  # External communication
             ],
             is_source=True,  # Untrusted content exposure
-            data_class=DataClass.PRIVATE
+            data_class=DataClass.PRIVATE,
         )
 
         agent = AgentDefinition(
@@ -139,22 +118,17 @@ class TestLethalTrifectaDetector:
             direct_capabilities=[
                 Capability.DB_READ,
                 Capability.NETWORK_WRITE,
-            ]
+            ],
         )
 
-        graph = GraphDefinition(
-            framework="Test",
-            nodes=[agent_node],
-            agents=[agent]
-        )
+        graph = GraphDefinition(framework="Test", nodes=[agent_node], agents=[agent])
 
         detector = LethalTrifectaDetector()
         findings = detector.detect(graph)
 
         # Should detect the trifecta
         trifecta_findings = [
-            f for f in findings
-            if "trifecta" in f.title.lower() or "trifecta" in f.category.lower()
+            f for f in findings if "trifecta" in f.title.lower() or "trifecta" in f.category.lower()
         ]
         assert len(trifecta_findings) > 0
         # Should be CRITICAL
@@ -168,29 +142,22 @@ class TestLethalTrifectaDetector:
             name="Agent",
             type=NodeType.AGENT,
             capabilities=[Capability.DB_READ, Capability.NETWORK_READ],
-            data_class=DataClass.PRIVATE
+            data_class=DataClass.PRIVATE,
         )
 
         agent = AgentDefinition(
             name="IncompleteAgent",
             node_id="agent",
-            direct_capabilities=[Capability.DB_READ, Capability.NETWORK_READ]
+            direct_capabilities=[Capability.DB_READ, Capability.NETWORK_READ],
         )
 
-        graph = GraphDefinition(
-            framework="Test",
-            nodes=[agent_node],
-            agents=[agent]
-        )
+        graph = GraphDefinition(framework="Test", nodes=[agent_node], agents=[agent])
 
         detector = LethalTrifectaDetector()
         findings = detector.detect(graph)
 
         # Should not detect trifecta
-        trifecta_findings = [
-            f for f in findings
-            if "trifecta" in f.title.lower()
-        ]
+        trifecta_findings = [f for f in findings if "trifecta" in f.title.lower()]
         assert len(trifecta_findings) == 0
 
 
@@ -210,31 +177,25 @@ class TestDangerousPathDetector:
             name="UserInput",
             type=NodeType.TOOL,
             is_source=True,
-            trust=TrustLevel.UNTRUSTED
+            trust=TrustLevel.UNTRUSTED,
         )
 
         # Create sink (dangerous capability)
         sink_node = NodeDefinition(
-            id="sink",
-            name="CodeExec",
-            type=NodeType.TOOL,
-            capabilities=[Capability.CODE_EXEC]
+            id="sink", name="CodeExec", type=NodeType.TOOL, capabilities=[Capability.CODE_EXEC]
         )
 
         graph = GraphDefinition(
             framework="Test",
             nodes=[source_node, sink_node],
-            edges=[{"source": "source", "target": "sink"}]
+            edges=[{"source": "source", "target": "sink"}],
         )
 
         detector = DangerousPathDetector()
         findings = detector.detect(graph)
 
         # Should detect the dangerous path
-        path_findings = [
-            f for f in findings
-            if f.path is not None
-        ]
+        path_findings = [f for f in findings if f.path is not None]
         assert len(path_findings) > 0
 
     def test_no_path_without_source(self):
@@ -245,13 +206,10 @@ class TestDangerousPathDetector:
             name="CodeExec",
             type=NodeType.TOOL,
             capabilities=[Capability.CODE_EXEC],
-            trust=TrustLevel.TRUSTED
+            trust=TrustLevel.TRUSTED,
         )
 
-        graph = GraphDefinition(
-            framework="Test",
-            nodes=[sink_node]
-        )
+        graph = GraphDefinition(framework="Test", nodes=[sink_node])
 
         detector = DangerousPathDetector()
         findings = detector.detect(graph)
@@ -268,20 +226,17 @@ class TestDangerousPathDetector:
             name="UserInput",
             type=NodeType.TOOL,
             is_source=True,
-            trust=TrustLevel.UNTRUSTED
+            trust=TrustLevel.UNTRUSTED,
         )
 
         sink_node = NodeDefinition(
-            id="sink",
-            name="ShellExec",
-            type=NodeType.TOOL,
-            capabilities=[Capability.SHELL_EXEC]
+            id="sink", name="ShellExec", type=NodeType.TOOL, capabilities=[Capability.SHELL_EXEC]
         )
 
         graph = GraphDefinition(
             framework="Test",
             nodes=[source_node, sink_node],
-            edges=[{"source": "source", "target": "sink"}]
+            edges=[{"source": "source", "target": "sink"}],
         )
 
         detector = DangerousPathDetector()
@@ -290,11 +245,7 @@ class TestDangerousPathDetector:
         # Check confidence levels are valid
         for finding in findings:
             if finding.confidence:
-                assert finding.confidence in [
-                    Confidence.HIGH,
-                    Confidence.MEDIUM,
-                    Confidence.LOW
-                ]
+                assert finding.confidence in [Confidence.HIGH, Confidence.MEDIUM, Confidence.LOW]
 
 
 class TestFindingGeneration:
@@ -309,7 +260,7 @@ class TestFindingGeneration:
             confidence=Confidence.HIGH,
             category="Test",
             description="Test description",
-            remediation="Test remediation"
+            remediation="Test remediation",
         )
 
         assert finding.id == "TEST-001"
@@ -327,10 +278,7 @@ class TestFindingGeneration:
             category="Injection",
             description="Test",
             remediation="Test",
-            security_framework_mapping={
-                "OWASP": "LLM01",
-                "CWE": "CWE-77"
-            }
+            security_framework_mapping={"OWASP": "LLM01", "CWE": "CWE-77"},
         )
 
         assert "OWASP" in finding.security_framework_mapping
@@ -343,7 +291,7 @@ class TestFindingGeneration:
             sink_id="exec",
             node_ids=["input", "agent", "exec"],
             sink_capability=Capability.CODE_EXEC,
-            confidence=Confidence.HIGH
+            confidence=Confidence.HIGH,
         )
 
         finding = Finding(
@@ -353,7 +301,7 @@ class TestFindingGeneration:
             category="Reachability",
             description="Test",
             remediation="Test",
-            path=path
+            path=path,
         )
 
         assert finding.path is not None

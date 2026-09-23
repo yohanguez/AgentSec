@@ -1,5 +1,6 @@
-import pydot
 from typing import Set, Tuple
+
+import pydot
 
 from agentsec.models import GraphDefinition, NodeType
 
@@ -49,19 +50,23 @@ class GraphVisualizer:
 
         # 2. Ownership edges — grey/dashed for context, UNLESS the pair is on an
         #    attack path (in which case the red path edge below represents it).
-        for (aid, tid) in sorted(ownership):
+        for aid, tid in sorted(ownership):
             if (aid, tid) in path_edges or (tid, aid) in path_edges:
                 continue
             dot_graph.add_edge(
                 pydot.Edge(
-                    self._sanitize(aid), self._sanitize(tid),
-                    dir="none", style="dashed", color="#AEB6BF", penwidth="1",
+                    self._sanitize(aid),
+                    self._sanitize(tid),
+                    dir="none",
+                    style="dashed",
+                    color="#AEB6BF",
+                    penwidth="1",
                 )
             )
 
         # 3. Explicit red attack-path segments not already drawn (e.g. the
         #    source->agent and agent->sink hops that aren't workflow handoffs).
-        for (u, v) in path_edges:
+        for u, v in path_edges:
             if (u, v) in drawn:
                 continue
             dot_graph.add_edge(
@@ -83,11 +88,36 @@ class GraphVisualizer:
 
     def _create_dot_node(self, node, on_attack_path: bool, grade) -> pydot.Node:
         style_map = {
-            NodeType.AGENT: {"shape": "box", "style": '"rounded,filled"', "fillcolor": "#5DADE2", "color": "#2874A6"},
-            NodeType.TOOL: {"shape": "ellipse", "style": '"filled"', "fillcolor": "#F8B400", "color": "#D68910"},
-            NodeType.CUSTOM_TOOL: {"shape": "ellipse", "style": '"filled"', "fillcolor": "#F39C12", "color": "#B9770E"},
-            NodeType.MCP_SERVER: {"shape": "hexagon", "style": '"filled"', "fillcolor": "#AF7AC5", "color": "#7D3C98"},
-            NodeType.BASIC: {"shape": "circle", "style": '"filled"', "fillcolor": "#52BE80", "color": "#27AE60"},
+            NodeType.AGENT: {
+                "shape": "box",
+                "style": '"rounded,filled"',
+                "fillcolor": "#5DADE2",
+                "color": "#2874A6",
+            },
+            NodeType.TOOL: {
+                "shape": "ellipse",
+                "style": '"filled"',
+                "fillcolor": "#F8B400",
+                "color": "#D68910",
+            },
+            NodeType.CUSTOM_TOOL: {
+                "shape": "ellipse",
+                "style": '"filled"',
+                "fillcolor": "#F39C12",
+                "color": "#B9770E",
+            },
+            NodeType.MCP_SERVER: {
+                "shape": "hexagon",
+                "style": '"filled"',
+                "fillcolor": "#AF7AC5",
+                "color": "#7D3C98",
+            },
+            NodeType.BASIC: {
+                "shape": "circle",
+                "style": '"filled"',
+                "fillcolor": "#52BE80",
+                "color": "#27AE60",
+            },
         }
         style = dict(style_map.get(node.type, style_map[NodeType.BASIC]))
 

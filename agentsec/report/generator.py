@@ -19,9 +19,7 @@ class ReportGenerator:
         self.visualizer = GraphVisualizer()
 
     def _context(self, graph: GraphDefinition) -> dict:
-        severity_counts = {
-            s.value: len(graph.get_findings_by_severity(s)) for s in Severity
-        }
+        severity_counts = {s.value: len(graph.get_findings_by_severity(s)) for s in Severity}
         # Per-agent report card rows.
         report_card = []
         for a in graph.agents:

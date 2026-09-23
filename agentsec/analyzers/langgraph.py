@@ -1,5 +1,4 @@
 import ast
-from pathlib import Path
 from typing import Dict, List, Optional, Set
 
 from agentsec.analyzers.base import BaseAnalyzer
@@ -13,9 +12,7 @@ from agentsec.models import (
 )
 from agentsec.utils import (
     extract_string_argument,
-    find_class_instantiations,
     find_function_calls,
-    find_imports,
     find_python_files,
     parse_python_file,
 )
@@ -155,7 +152,11 @@ class LangGraphAnalyzer(BaseAnalyzer):
                 continue
             call = node.value
             func_name = self._call_name(call.func)
-            if func_name not in ("create_react_agent", "create_tool_calling_agent", "create_openai_functions_agent"):
+            if func_name not in (
+                "create_react_agent",
+                "create_tool_calling_agent",
+                "create_openai_functions_agent",
+            ):
                 continue
             # target variable name
             if not node.targets or not isinstance(node.targets[0], ast.Name):
@@ -272,17 +273,37 @@ class LangGraphAnalyzer(BaseAnalyzer):
 
     def _categorize_tool(self, tool_name: str) -> ToolCategory:
         tool_lower = tool_name.lower()
-        if "search" in tool_lower or "duckduckgo" in tool_lower or "tavily" in tool_lower or "serper" in tool_lower:
+        if (
+            "search" in tool_lower
+            or "duckduckgo" in tool_lower
+            or "tavily" in tool_lower
+            or "serper" in tool_lower
+        ):
             return ToolCategory.WEB_SEARCH
-        elif "python" in tool_lower or "repl" in tool_lower or "code" in tool_lower or "interpreter" in tool_lower:
+        elif (
+            "python" in tool_lower
+            or "repl" in tool_lower
+            or "code" in tool_lower
+            or "interpreter" in tool_lower
+        ):
             return ToolCategory.CODE_INTERPRETER
         elif "shell" in tool_lower or "bash" in tool_lower or "terminal" in tool_lower:
             return ToolCategory.SHELL
         elif "email" in tool_lower or "mail" in tool_lower or "smtp" in tool_lower:
             return ToolCategory.EMAIL
-        elif "file" in tool_lower or "pdf" in tool_lower or "document" in tool_lower or "directory" in tool_lower:
+        elif (
+            "file" in tool_lower
+            or "pdf" in tool_lower
+            or "document" in tool_lower
+            or "directory" in tool_lower
+        ):
             return ToolCategory.DOCUMENT_LOADER
-        elif "sql" in tool_lower or "database" in tool_lower or "postgres" in tool_lower or "db" in tool_lower:
+        elif (
+            "sql" in tool_lower
+            or "database" in tool_lower
+            or "postgres" in tool_lower
+            or "db" in tool_lower
+        ):
             return ToolCategory.DATABASE
         elif "http" in tool_lower or "request" in tool_lower or "webhook" in tool_lower:
             return ToolCategory.HTTP_REQUEST
