@@ -91,3 +91,11 @@ Thumbs.db
 # Generated scan reports (keep example-report.html only)
 /report.html
 /report_*.html
+report-secure.html
+
+# Personal demo/presentation files (keep local only, don't push)
+demo/SLIDES.md
+demo/DEMO_3_VIDEO_SCRIPT.md
+demo/SLIDE_CONTENT.md
+demo/SPEAKER_SCRIPT.md
+CONFERENCE_READY_CHECKLIST.md
