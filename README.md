@@ -347,6 +347,8 @@ AgentSec performs **static analysis only** - no code execution required. It:
 
 Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for details.
 
+**Note**: All dependencies listed in `pyproject.toml` have their own licenses. Please review each dependency's license before use in commercial applications.
+
 Copyright 2026 Imperva, Inc.
 
 ## 🤝 Contributing

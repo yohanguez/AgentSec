@@ -1,0 +1,30 @@
+version: 2
+updates:
+  # Enable version updates for Python dependencies
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    # Group updates to reduce PR noise
+    groups:
+      production-dependencies:
+        dependency-type: "production"
+      development-dependencies:
+        dependency-type: "development"
+    # Auto-merge minor and patch updates
+    open-pull-requests-limit: 5
+    # Add reviewers
+    reviewers:
+      - "yohanguez"
+    labels:
+      - "dependencies"
+      - "security"
+
+  # Enable security updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "github-actions"

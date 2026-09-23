@@ -42,8 +42,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
-        python-version: ['3.9', '3.10', '3.11', '3.12']
+        os: [ubuntu-latest]
+        python-version: ['3.9', '3.11', '3.12']
+        # Reduced matrix to save CI minutes (Thales limit: 2000 min/month)
+        # Testing on Linux with 3 Python versions covers most use cases
 
     steps:
       - name: Check out code
