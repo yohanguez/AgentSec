@@ -1,5 +1,11 @@
 # AgentSec
 
+[![CI](https://github.com/yohanguez/AgentSec/actions/workflows/ci.yml/badge.svg)](https://github.com/yohanguez/AgentSec/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/yohanguez/AgentSec/branch/main/graph/badge.svg)](https://codecov.io/gh/yohanguez/AgentSec)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
 **Auditing AI Agents — Because Your Autonomous AI Probably Shouldn't Have Root**
 
 AgentSec audits AI agent workflows for **excessive agency** and **abusable

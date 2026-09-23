@@ -37,11 +37,36 @@ poetry.lock
 *.swo
 *~
 
+# Ruff
+.ruff_cache/
+
+# Mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Security
+*.pem
+*.key
+*.cert
+credentials.json
+secrets.yaml
+
+# Temporary files
+*.tmp
+*.bak
+*.orig
+
 # Testing
 .pytest_cache/
 .coverage
+.coverage.*
 htmlcov/
+coverage.xml
+*.cover
+.hypothesis/
 .tox/
+.nox/
 
 # Reports (generated outputs)
 report_*.html
