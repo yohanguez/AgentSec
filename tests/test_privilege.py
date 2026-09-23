@@ -1,6 +1,5 @@
 """Tests for privilege scoring and grading."""
 
-
 from agentsec.audit.privilege import PrivilegeScorer
 from agentsec.models import (
     AgentDefinition,

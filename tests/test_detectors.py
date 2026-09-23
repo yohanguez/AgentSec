@@ -1,6 +1,5 @@
 """Tests for security finding detectors."""
 
-
 from agentsec.audit.detectors import (
     DangerousPathDetector,
     ExcessiveAgencyDetector,

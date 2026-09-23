@@ -1,6 +1,5 @@
 """Extended tests for data models."""
 
-
 from agentsec.models import (
     AgentDefinition,
     AttackPath,

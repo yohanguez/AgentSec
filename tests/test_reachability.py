@@ -1,6 +1,5 @@
 """Tests for reachability analysis."""
 
-
 from agentsec.audit.reachability import ReachabilityAnalyzer
 from agentsec.models import (
     Capability,
