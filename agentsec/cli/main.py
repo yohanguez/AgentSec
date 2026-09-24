@@ -14,12 +14,13 @@ from agentsec.analyzers import (
     N8NAnalyzer,
     OpenAIAgentsAnalyzer,
 )
-from agentsec.mappers import VulnerabilityMapper
+from agentsec.audit import Auditor
+from agentsec.models import Severity
 from agentsec.report import ReportGenerator
 
 app = typer.Typer(
     name="agentsec",
-    help="Static security analysis for AI agent workflows",
+    help="Audit AI agent workflows for excessive agency and abusable attack paths",
     add_completion=False,
 )
 
@@ -32,147 +33,138 @@ class Framework(str, Enum):
     N8N = "n8n"
 
 
+ANALYZER_MAP = {
+    Framework.LANGGRAPH: LangGraphAnalyzer,
+    Framework.CREWAI: CrewAIAnalyzer,
+    Framework.OPENAI_AGENTS: OpenAIAgentsAnalyzer,
+    Framework.AUTOGEN: AutogenAnalyzer,
+    Framework.N8N: N8NAnalyzer,
+}
+
+_SEV_ICON = {
+    Severity.CRITICAL: "🔴",
+    Severity.HIGH: "🟠",
+    Severity.MEDIUM: "🟡",
+    Severity.LOW: "🔵",
+    Severity.INFO: "⚪",
+}
+
+
 @app.command()
 def scan(
     framework: Framework = typer.Argument(
         ..., help="Framework to analyze (langgraph, crewai, openai-agents, autogen, n8n)"
     ),
     input_dir: Optional[Path] = typer.Option(
-        None,
-        "--input-dir",
-        "-i",
-        help="Directory containing the code to analyze (default: current directory)",
+        None, "--input-dir", "-i", help="Directory containing the code to analyze"
     ),
     output_file: Optional[Path] = typer.Option(
-        None,
-        "--output-file",
-        "-o",
-        help="Output file path (default: report_TIMESTAMP.html)",
+        None, "--output-file", "-o", help="Output file path (default: report_TIMESTAMP.html)"
     ),
     export_json: bool = typer.Option(
-        False, "--export-graph-json", help="Export GraphDefinition as JSON instead of HTML"
-    ),
-    harden_prompts: bool = typer.Option(
-        False, "--harden-prompts", help="Enable prompt hardening (requires OPENAI_API_KEY)"
+        False, "--export-graph-json", help="Export the audited graph as JSON instead of HTML"
     ),
 ):
-    # Set defaults
     if input_dir is None:
         input_dir = Path(os.getenv("AGENTSEC_INPUT_DIRECTORY", "."))
-
     if output_file is None:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        extension = "json" if export_json else "html"
-        output_file = Path(
-            os.getenv("AGENTSEC_OUTPUT_FILE", f"report_{timestamp}.{extension}")
-        )
+        ext = "json" if export_json else "html"
+        output_file = Path(os.getenv("AGENTSEC_OUTPUT_FILE", f"report_{timestamp}.{ext}"))
 
-    # Validate input directory
     if not input_dir.exists():
-        typer.echo(f"❌ Error: Input directory not found: {input_dir}", err=True)
+        typer.echo(f"❌ Input directory not found: {input_dir}", err=True)
         raise typer.Exit(1)
 
     typer.echo(f"🔍 Analyzing {input_dir} for {framework.value} workflows...")
-
-    # Select analyzer
-    analyzer_map = {
-        Framework.LANGGRAPH: LangGraphAnalyzer,
-        Framework.CREWAI: CrewAIAnalyzer,
-        Framework.OPENAI_AGENTS: OpenAIAgentsAnalyzer,
-        Framework.AUTOGEN: AutogenAnalyzer,
-        Framework.N8N: N8NAnalyzer,
-    }
-
-    analyzer_class = analyzer_map[framework]
-    analyzer = analyzer_class(input_dir)
-
-    # Run analysis
+    analyzer = ANALYZER_MAP[framework](input_dir)
     try:
         graph = analyzer.analyze()
     except Exception as e:
         typer.echo(f"❌ Error during analysis: {e}", err=True)
         raise typer.Exit(1)
 
-    # Check if workflow was found
     if len(graph.nodes) < 3:
         typer.echo(
-            f"⚠️  Warning: No significant workflow found in {input_dir}. "
-            f"Found only {len(graph.nodes)} nodes.",
-            err=True,
-        )
-        typer.echo(
-            "Please ensure the directory contains agent workflow code for "
-            f"{framework.value}.",
+            f"⚠️  No significant workflow found in {input_dir} " f"(only {len(graph.nodes)} nodes).",
             err=True,
         )
         raise typer.Exit(1)
 
     typer.echo(f"✓ Found {len(graph.agents)} agents and {len(graph.get_tools())} tools")
 
-    # Map vulnerabilities
-    typer.echo("🔍 Mapping vulnerabilities...")
-    mapper = VulnerabilityMapper()
-    graph = mapper.map_vulnerabilities(graph)
+    typer.echo("🔬 Auditing privileges and attack paths...")
+    graph = Auditor(input_dir).audit(graph)
 
-    vuln_count = graph.get_total_vulnerabilities()
-    if vuln_count > 0:
-        typer.echo(f"⚠️  Found {vuln_count} vulnerabilities")
-    else:
-        typer.echo("✓ No vulnerabilities detected")
+    _print_summary(graph)
 
-    # Prompt hardening (optional)
-    if harden_prompts:
-        try:
-            from agentsec.hardening import PromptHardener
-
-            typer.echo("🛡️  Hardening prompts...")
-            hardener = PromptHardener()
-            hardened_prompts = hardener.harden_all(graph.agents)
-            # TODO: Add hardened prompts to graph metadata
-            typer.echo(f"✓ Hardened {len(hardened_prompts)} prompts")
-        except ImportError:
-            typer.echo(
-                "⚠️  Prompt hardening requires OpenAI package. "
-                "Install with: pip install agentsec[prompt-hardening]",
-                err=True,
-            )
-        except Exception as e:
-            typer.echo(f"⚠️  Warning: Prompt hardening failed: {e}", err=True)
-
-    # Generate report
     typer.echo("📝 Generating report...")
     generator = ReportGenerator()
-
     try:
         if export_json:
             generator.generate_json(graph, output_file)
         else:
             generator.generate_html(graph, output_file)
-
-        typer.echo(f"✅ Report generated: {output_file.absolute()}")
-
-        # Summary
-        typer.echo("\n" + "=" * 50)
-        typer.echo("📊 Summary:")
-        typer.echo(f"  • Agents: {len(graph.agents)}")
-        typer.echo(f"  • Tools: {len(graph.get_tools())}")
-        typer.echo(f"  • Vulnerabilities: {vuln_count}")
-        if vuln_count > 0:
-            typer.echo(
-                f"\n⚠️  Found {vuln_count} security issues. "
-                f"Review the report for details."
-            )
-        typer.echo("=" * 50)
-
     except Exception as e:
         typer.echo(f"❌ Error generating report: {e}", err=True)
         raise typer.Exit(1)
+
+    typer.echo(f"✅ Report generated: {output_file.absolute()}")
+
+
+def _print_summary(graph) -> None:
+    typer.echo("\n" + "=" * 60)
+    typer.echo("🪪  PRIVILEGE REPORT CARD")
+    for a in graph.agents:
+        caps = ", ".join(c.value for c in a.direct_capabilities) or "none"
+        typer.echo(f"   [{a.privilege_grade}] {a.name:<16} {caps}")
+    typer.echo("-" * 60)
+    counts = {s: len(graph.get_findings_by_severity(s)) for s in Severity}
+    typer.echo(
+        "⚠️  Findings: "
+        + f"{counts[Severity.CRITICAL]} critical, "
+        + f"{counts[Severity.HIGH]} high, "
+        + f"{counts[Severity.MEDIUM]} medium"
+    )
+    for f in graph.findings:
+        typer.echo(f"   {_SEV_ICON.get(f.severity, '•')} [{f.severity.value:<8}] {f.title}")
+    typer.echo("=" * 60 + "\n")
+
+
+@app.command()
+def monitor(
+    duration: int = typer.Option(30, "--duration", "-d", help="Seconds to observe"),
+    output_file: Optional[Path] = typer.Option(
+        None, "--output-file", "-o", help="Write the JSON summary here"
+    ),
+):
+    """Observe live network connections and flag runtime AI/LLM traffic."""
+    try:
+        from agentsec.monitor import monitor_network
+    except ImportError:
+        typer.echo("❌ Runtime monitor requires psutil: pip install agentsec[monitor]", err=True)
+        raise typer.Exit(1)
+    monitor_network(duration=duration, output_file=output_file)
+
+
+@app.command()
+def serve(
+    host: str = typer.Option("127.0.0.1", "--host"),
+    port: int = typer.Option(8000, "--port", "-p"),
+):
+    """Launch the local AgentSec web dashboard."""
+    try:
+        from agentsec.server import run_server
+    except ImportError:
+        typer.echo("❌ Web dashboard requires FastAPI: pip install agentsec[server]", err=True)
+        raise typer.Exit(1)
+    run_server(host=host, port=port)
 
 
 @app.command()
 def version():
     typer.echo(f"AgentSec v{__version__}")
-    typer.echo("Static Security Analysis for AI Agent Workflows")
+    typer.echo("Auditing AI Agents — Because Your Autonomous AI Probably Shouldn't Have Root")
 
 
 if __name__ == "__main__":

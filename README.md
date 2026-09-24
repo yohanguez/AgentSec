@@ -1,65 +1,89 @@
 # AgentSec
 
-**Static Security Analysis for AI Agent Workflows**
+[![CI](https://github.com/yohanguez/AgentSec/actions/workflows/ci.yml/badge.svg)](https://github.com/yohanguez/AgentSec/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/yohanguez/AgentSec/branch/main/graph/badge.svg)](https://codecov.io/gh/yohanguez/AgentSec)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-AgentSec is a security scanner that analyzes AI agent workflows built with popular frameworks like LangGraph, CrewAI, OpenAI Agents, Autogen, and n8n. It detects security vulnerabilities, maps them to OWASP/CWE standards, and generates detailed HTML reports with interactive visualizations.
+**Auditing AI Agents — Because Your Autonomous AI Probably Shouldn't Have Root**
+
+AgentSec audits AI agent workflows for **excessive agency** and **abusable
+attack paths**. It maps every agent's capabilities, grades how over-powered each
+one is, and traces how untrusted input can reach dangerous capabilities *across
+agent handoffs* — the analysis flat, per-file scanners can't do because they
+don't model the workflow graph.
+
+Supports LangGraph, CrewAI, OpenAI Agents, Autogen, and n8n.
+
+## What makes it different
+
+Most tools either red-team a live model (garak, PyRIT) or inventory what's
+running (discovery scanners). AgentSec analyses the **workflow topology**
+statically and answers three questions:
+
+1. **What can each agent do?** — a per-agent privilege report card (grade A–F),
+   built from a capability database *and* AST inspection of custom tools
+   (`subprocess` → `shell_exec`, `cursor.execute` → `db_read`, …). Not just
+   name-matching.
+2. **Which agents are over-privileged?** — excessive-agency detection, plus the
+   **Lethal Trifecta**: any agent with private-data access + untrusted-content
+   exposure + external communication.
+3. **Can untrusted input reach a dangerous sink?** — cross-agent taint /
+   reachability, with honest confidence labels (HIGH within one agent, MEDIUM
+   across a handoff). Attack paths are highlighted in red on the workflow graph.
 
 ## 🚀 Installation
 
-### Prerequisites
-- Python 3.8 or higher
-- Poetry (recommended) or pip
-
-### Install with Poetry (Recommended)
-
 ```bash
-# Clone the repository
 git clone https://github.com/yohanguez/AgentSec.git
 cd AgentSec
 
-# Install dependencies
-poetry install
-
-# Activate the virtual environment
-poetry shell
-```
-
-### Install with pip
-
-```bash
-# Clone the repository
-git clone https://github.com/yohanguez/AgentSec.git
-cd AgentSec
-
-# Install dependencies
+# Core (static audit + HTML/JSON reports)
 pip install -e .
+
+# With the runtime monitor and web dashboard
+pip install -e ".[all]"      # or: ".[monitor]" / ".[server]"
 ```
 
 ## 📖 Quick Start
 
-### Scan a workflow
+```bash
+# Audit a workflow → interactive HTML report
+agentsec scan langgraph -i demo/autoops -o report.html
+
+# Machine-readable output for CI/CD
+agentsec scan langgraph -i ./my-project --export-graph-json -o audit.json
+
+# Launch the local dashboard (unified view of all runs)
+agentsec serve                      # http://localhost:8000
+
+# Observe live AI/LLM network traffic (needs sudo on macOS/Linux)
+sudo agentsec monitor --duration 30
+```
+
+Try the bundled demo — an intentionally insecure incident-response crew that
+exhibits every finding type (see [`demo/`](demo/README.md)):
 
 ```bash
-# Scan a LangGraph workflow
-agentsec scan langgraph --input-dir ./examples
-
-# Scan a CrewAI workflow
-agentsec scan crewai --input-dir ./my-crewai-project
-
-# Scan with all options
-agentsec scan langgraph \
-  --input-dir ./my-project \
-  --output-file my-report.html \
-  --export-graph-json
+agentsec scan langgraph -i demo/autoops -o report.html
 ```
+
+### Commands
+
+| Command | Purpose |
+|---------|---------|
+| `agentsec scan <framework> -i <dir>` | Static privilege/agency audit → HTML or JSON |
+| `agentsec serve` | Local web dashboard (SQLite-backed run history) |
+| `agentsec monitor` | Runtime AI-connection observation (psutil) |
 
 ### Supported Frameworks
 
-- **LangGraph** - Detect StateGraph workflows and tool usage
-- **CrewAI** - Analyze agents, tasks, and crew configurations
-- **OpenAI Agents** - Scan Agent SDK implementations
-- **Autogen** - Find ConversableAgent patterns
-- **n8n** - Parse workflow JSON files
+- **LangGraph** — `create_react_agent` / `StateGraph`, per-agent tool attribution
+- **CrewAI** — agents, tasks, and per-agent `tools=[...]`
+- **OpenAI Agents** — Agent SDK implementations
+- **Autogen** — ConversableAgent patterns
+- **n8n** — workflow JSON files
 
 ## 📊 Example Report
 
@@ -160,35 +184,45 @@ Step-by-step guidance for each vulnerability with actionable security controls
 
 ## 🔍 What AgentSec Detects
 
-### Vulnerability Categories
+### Findings
 
-- **SSRF (Server-Side Request Forgery)** - Web search tools, HTTP requests
-- **Remote Code Execution** - Python REPL, code interpreters
-- **Path Traversal** - File system access, document loaders
-- **SQL Injection** - Database query tools
-- **Prompt Injection** - Unvalidated LLM inputs
-- **Data Leakage** - Sensitive information exposure
+- **Lethal Trifecta** *(critical)* — an agent with private-data access +
+  untrusted-content exposure + external communication.
+- **Excessive Agency** *(high/medium)* — agents that hold root-equivalent
+  capability (code/shell execution) or aggregate too many dangerous capabilities.
+- **Dangerous Reachable Paths** *(critical/high)* — untrusted input that can
+  reach a dangerous sink (code exec, shell, DB/file write, exfil), traced across
+  agent handoffs with HIGH/MEDIUM confidence labels.
+
+### Capabilities tracked
+
+`code_exec`, `shell_exec`, `fs_read`, `fs_write`, `db_read`, `db_write`,
+`network_read`, `network_write`, `email_send`, `secrets_access` — resolved by
+name, by category, and (for custom tools) by **AST signature inspection**.
 
 ### Security Frameworks
 
-All vulnerabilities are mapped to:
-- **OWASP Top 10 for LLMs**
-- **CWE (Common Weakness Enumeration)**
-- **MITRE ATT&CK** (where applicable)
+Findings are mapped to **OWASP Top 10 for LLMs** (notably LLM01 Prompt Injection
+and LLM08 Excessive Agency) and **CWE**.
 
 ## 📁 Project Structure
 
 ```
 AgentSec/
 ├── agentsec/
-│   ├── analyzers/      # Framework-specific analyzers
-│   ├── models/         # Data models (Graph, Node, Edge)
-│   ├── mappers/        # Vulnerability mapping
-│   ├── report/         # HTML report generation
+│   ├── analyzers/      # Framework-specific analyzers → workflow graph
+│   ├── models/         # Data models (Graph, Node, Capability, Finding)
+│   ├── audit/          # Flagship: capability tagging, AST signatures,
+│   │                   #   reachability/taint, privilege scoring, detectors
+│   ├── report/         # HTML report + graph visualizer (red attack paths)
+│   ├── server/         # FastAPI dashboard + SQLite run store
+│   ├── monitor/        # Runtime AI-connection monitor (psutil)
+│   ├── mappers/        # Legacy vulnerability mapping
 │   ├── utils/          # AST parsing and file utilities
-│   ├── cli/            # Command-line interface
-│   └── data/           # Vulnerability database
-├── examples/           # Example vulnerable workflows
+│   ├── cli/            # Command-line interface (scan / serve / monitor)
+│   └── data/           # Capability + vulnerability databases
+├── demo/autoops/       # Intentionally insecure demo workflow
+├── examples/           # Example workflows
 ├── tests/              # Test suite
 └── README.md
 ```
@@ -197,16 +231,71 @@ AgentSec/
 
 ```bash
 # Run all tests
+make test
+
+# Or with poetry
 poetry run pytest
 
-# Run with coverage
-poetry run pytest --cov=agentsec
+# Run with coverage report
+pytest --cov=agentsec --cov-report=html
 
 # Run specific test file
-poetry run pytest tests/test_models.py
+pytest tests/test_models.py
+
+# Run tests matching pattern
+pytest -k "test_capability"
 ```
 
 ## 🛠️ Development
+
+### Quick Start for Contributors
+
+```bash
+# 1. Clone and install
+git clone https://github.com/yohanguez/AgentSec.git
+cd AgentSec
+make install
+
+# 2. Install pre-commit hooks
+make hooks
+
+# 3. Run tests
+make test
+
+# 4. Format and lint code
+make format
+make lint
+
+# 5. Run demo
+make demo
+```
+
+### Development Workflow
+
+AgentSec uses a professional development setup:
+
+- **Code Formatting**: black (100 chars)
+- **Linting**: ruff
+- **Type Checking**: mypy
+- **Testing**: pytest with 80% coverage requirement
+- **Pre-commit Hooks**: Automatically format and check code before commit
+- **CI/CD**: GitHub Actions with multi-OS, multi-Python testing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+
+### Available Make Targets
+
+```bash
+make install    # Install all dependencies
+make test       # Run test suite with coverage
+make lint       # Check code quality
+make format     # Auto-format code
+make build      # Full pipeline (lint + test + wheel)
+make hooks      # Install git pre-commit hooks
+make clean      # Remove build artifacts
+make demo       # Run demo analysis
+make help       # Show all targets
+```
 
 ### Run Example Demos
 
@@ -226,21 +315,24 @@ python vulnerability_detection_demo.py
 ### Analyze a LangGraph Workflow
 
 ```python
+from pathlib import Path
 from agentsec.analyzers import LangGraphAnalyzer
-from agentsec.mappers import VulnerabilityMapper
+from agentsec.audit import Auditor
 from agentsec.report import ReportGenerator
 
-# Analyze the code
-analyzer = LangGraphAnalyzer(input_dir="./my-project")
-graph = analyzer.analyze()
+input_dir = Path("./my-project")
 
-# Map vulnerabilities
-mapper = VulnerabilityMapper()
-graph = mapper.map_vulnerabilities(graph)
+# 1. Build the workflow graph (agents, tools, MCP servers, edges)
+graph = LangGraphAnalyzer(input_dir).analyze()
 
-# Generate report
-generator = ReportGenerator()
-generator.generate_html(graph, "security-report.html")
+# 2. Audit: tag capabilities, score privilege, run detectors
+graph = Auditor(input_dir).audit(graph)
+
+for f in graph.findings:
+    print(f.severity.value, f.title)
+
+# 3. Report
+ReportGenerator().generate_html(graph, Path("audit-report.html"))
 ```
 
 ## 🔒 Security Notes
@@ -253,11 +345,29 @@ AgentSec performs **static analysis only** - no code execution required. It:
 
 ## 📄 License
 
-This project is available for use as-is. See repository for details.
+Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for details.
+
+**Note**: All dependencies listed in `pyproject.toml` have their own licenses. Please review each dependency's license before use in commercial applications.
+
+Copyright 2026 Imperva, Inc.
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit issues or pull requests.
+Contributions are welcome! We follow professional open source standards:
+
+1. **Read Guidelines**: See [CONTRIBUTING.md](CONTRIBUTING.md) for setup and workflow
+2. **Code Standards**: Format with black, lint with ruff, type-check with mypy
+3. **Testing Required**: 80% coverage minimum, all tests must pass
+4. **Security First**: Follow [SECURITY.md](SECURITY.md) for vulnerability reporting
+5. **Code of Conduct**: Respectful collaboration per [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+
+Quick contribution checklist:
+- [ ] Tests pass (`make test`)
+- [ ] Code formatted (`make format`)
+- [ ] Linting passes (`make lint`)
+- [ ] Coverage ≥80%
+- [ ] Commit messages follow conventional format
+- [ ] PR description explains what and why
 
 ## 📧 Contact
 

@@ -37,11 +37,36 @@ poetry.lock
 *.swo
 *~
 
+# Ruff
+.ruff_cache/
+
+# Mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Security
+*.pem
+*.key
+*.cert
+credentials.json
+secrets.yaml
+
+# Temporary files
+*.tmp
+*.bak
+*.orig
+
 # Testing
 .pytest_cache/
 .coverage
+.coverage.*
 htmlcov/
+coverage.xml
+*.cover
+.hypothesis/
 .tox/
+.nox/
 
 # Reports (generated outputs)
 report_*.html
@@ -62,3 +87,18 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Generated scan reports (keep example-report.html only)
+/report.html
+/report_*.html
+report-secure.html
+
+# Personal demo/presentation files (keep local only, don't push)
+demo/SLIDES.md
+demo/DEMO_*.md
+demo/SLIDE_*.md
+demo/SPEAKER_*.md
+demo/PRESENTATION.md
+demo/README.md
+CONFERENCE_READY_CHECKLIST.md
+

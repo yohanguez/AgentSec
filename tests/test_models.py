@@ -1,5 +1,3 @@
-import pytest
-
 from agentsec.models import (
     AgentDefinition,
     EdgeDefinition,
@@ -43,9 +41,7 @@ def test_vulnerability():
 
 
 def test_graph_definition():
-    node1 = NodeDefinition(
-        id="agent1", name="Agent 1", type=NodeType.AGENT
-    )
+    node1 = NodeDefinition(id="agent1", name="Agent 1", type=NodeType.AGENT)
     node2 = NodeDefinition(
         id="tool1", name="Tool 1", type=NodeType.TOOL, category=ToolCategory.WEB_SEARCH
     )
@@ -73,8 +69,6 @@ def test_graph_definition():
     assert graph.get_total_vulnerabilities() == 0
 
     # Add vulnerabilities
-    vuln = Vulnerability(
-        name="Test", description="Test", remediation="Test"
-    )
+    vuln = Vulnerability(name="Test", description="Test", remediation="Test")
     node2.vulnerabilities.append(vuln)
     assert graph.get_total_vulnerabilities() == 1

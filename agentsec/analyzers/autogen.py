@@ -1,5 +1,4 @@
 import ast
-from pathlib import Path
 from typing import Dict, List, Set
 
 from agentsec.analyzers.base import BaseAnalyzer

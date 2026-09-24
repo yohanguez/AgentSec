@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgentSec — Agent Console (hack it live)</title>
+<style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
+           background:#0f1620; color:#e8edf2; padding:18px; }
+    a { color:#5DADE2; }
+    h1 { font-size:1.35em; color:#5DADE2; }
+    .sub { color:#8a97a6; font-size:.85em; margin-bottom:14px; }
+    .layout { display:grid; grid-template-columns: 340px 1fr 340px; gap:14px; align-items:start; }
+    .card { background:#182230; border:1px solid #24303f; border-radius:10px; padding:14px; }
+    .card h2 { font-size:.85em; text-transform:uppercase; letter-spacing:.6px; color:#8a97a6; margin-bottom:10px; }
+    textarea { width:100%; height:120px; background:#0f1620; color:#e8edf2; border:1px solid #2c3a4c;
+               border-radius:8px; padding:10px; font-size:.9em; resize:vertical; font-family:inherit; }
+    .btn { background:#5DADE2; color:#08121c; border:none; padding:9px 14px; border-radius:7px; cursor:pointer;
+           font-weight:700; font-size:.9em; }
+    .btn:hover { background:#7bc0ea; }
+    .btn.danger { background:#E74C3C; color:#fff; }
+    .btn.danger:hover { background:#ec6455; }
+    .btn.ghost { background:#24303f; color:#cdd8e3; }
+    .row { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; align-items:center; }
+    .preset { background:#24303f; color:#cdd8e3; border:1px solid #2c3a4c; padding:6px 10px;
+              border-radius:14px; cursor:pointer; font-size:.8em; }
+    .preset:hover { border-color:#5DADE2; color:#fff; }
+    .mode { font-size:.82em; color:#8a97a6; align-items:center; }
+    .mode label { margin-right:12px; cursor:pointer; }
+    .axis-label { display:inline-block; width:46px; color:#5DADE2; font-weight:700; text-transform:uppercase; font-size:.72em; letter-spacing:.5px; }
+    svg { width:100%; height:auto; background:#0f1620; border-radius:8px; }
+    .trace, .panel-list { font-family:'SF Mono',Menlo,monospace; font-size:.8em; max-height:340px; overflow-y:auto; }
+    .trace div, .panel-list div { padding:4px 6px; border-bottom:1px solid #1d2836; }
+    .panel-list div { white-space:pre-wrap; word-break:break-word; }
+    .c2addr { font-family:'SF Mono',Menlo,monospace; font-size:.75em; color:#ff8a80; margin:4px 0 6px; word-break:break-all; }
+    .c2addr b { color:#8a97a6; }
+    .trace .tool { color:#F5B041; }
+    .trace .effect { color:#8a97a6; white-space:pre-wrap; word-break:break-word; }
+    .trace .toolcall { color:#F5B041; font-weight:700; background:#231a0c; padding:1px 6px; border-radius:4px; }
+    .trace .llm { background:#0c1a24; border:1px solid #1d3a4d; border-radius:6px; padding:6px 8px; margin:2px 0; }
+    .trace .llm b { color:#5DADE2; }
+    .trace .llm pre { white-space:pre-wrap; word-break:break-word; color:#bcd3e0; margin-top:4px; font-size:.95em; }
+    .panel-list.c2 div { color:#ff8a80; }
+    .panel-list.victim div { color:#ffd479; }
+    .verdict { margin-top:10px; padding:10px; border-radius:8px; font-weight:700; text-align:center; display:none; }
+    .verdict.pwned { background:#3a1416; color:#ff8a80; border:1px solid #E74C3C; display:block; }
+    .verdict.safe  { background:#12241a; color:#7be2a0; border:1px solid #27ae60; display:block; }
+    .empty { color:#4d5a6a; font-style:italic; }
+    .node-shape { transition: all .25s ease; }
+    .node-hit { filter: drop-shadow(0 0 8px #E74C3C); }
+</style>
+</head>
+<body>
+    <h1>🎯 AgentSec — Agent Console</h1>
+    <div class="sub">Submit a support ticket to the live <b>AutoOps</b> agent and watch it get hacked.
+        Effects are real but sandboxed to a temp dir + localhost. · <a href="/">← dashboard</a></div>
+
+    <div class="layout">
+        <!-- LEFT: attacker input -->
+        <div class="card">
+            <h2>📨 Submit a ticket (you are the attacker)</h2>
+            <textarea id="ticket" placeholder="Type a support ticket… try a prompt injection."></textarea>
+            <div class="row">
+                <span class="preset" onclick="loadPreset('rce')">💣 RCE</span>
+                <span class="preset" onclick="loadPreset('exfil')">📤 Data exfil</span>
+                <span class="preset" onclick="loadPreset('ssrf')">☁️ SSRF creds</span>
+                <span class="preset" onclick="loadPreset('benign')">✅ Benign</span>
+            </div>
+            <div class="row">
+                <button class="btn danger" onclick="submitTicket()">▶ Send to agent</button>
+                <button class="btn ghost" onclick="resetAll()">↺ Reset</button>
+            </div>
+            <div class="row mode">
+                <span class="axis-label">Agent</span>
+                <label><input type="radio" name="agent" value="vulnerable" checked onchange="onModeChange()"> Vulnerable</label>
+                <label><input type="radio" name="agent" value="hardened" onchange="onModeChange()"> 🛡️ Hardened</label>
+            </div>
+            <div class="row mode">
+                <span class="axis-label">Brain</span>
+                <label><input type="radio" name="brain" value="llm" checked onchange="onModeChange()"> 🧠 Local LLM (Qwen-7B)</label>
+            </div>
+            <div id="verdict" class="verdict"></div>
+        </div>
+
+        <!-- CENTER: the agent graph -->
+        <div class="card">
+            <h2>🗺️ The agent (watch the path light up)</h2>
+            <svg id="graph" viewBox="0 0 760 520"></svg>
+        </div>
+
+        <!-- RIGHT: attacker's view -->
+        <div class="card">
+            <h2>🤖 Agent trace</h2>
+            <div id="trace" class="trace"><div class="empty">no activity yet</div></div>
+            <h2 style="margin-top:14px">💥 Victim (real effects)</h2>
+            <div id="victim" class="panel-list victim"><div class="empty">—</div></div>
+            <h2 style="margin-top:14px">📡 Attacker C2 (stolen data)</h2>
+            <div id="c2addr" class="c2addr"><b>server:</b> loading…</div>
+            <div id="c2" class="panel-list c2"><div class="empty">—</div></div>
+        </div>
+    </div>
+
+<script>
+const SVG_NS = "http://www.w3.org/2000/svg";
+let POS = {};      // node id -> {x,y,type}
+let GRAPHW = 760, GRAPHH = 520;
+
+function selectedAgent() { return document.querySelector('input[name=agent]:checked').value; }
+function selectedBrain() { return document.querySelector('input[name=brain]:checked').value; }
+
+function currentTarget() {
+    return selectedAgent() === 'hardened' ? 'secure' : 'vulnerable';
+}
+
+// Map the two axes (agent × brain) to a backend mode string.
+function computeMode() {
+    const hardened = selectedAgent() === 'hardened';
+    const llm = selectedBrain() === 'llm';
+    if (hardened && llm) return 'secure_llm';
+    if (hardened) return 'secure';
+    if (llm) return 'ollama';
+    return 'deterministic';
+}
+
+async function loadGraph(target) {
+    target = target || currentTarget();
+    const g = await (await fetch('/console/graph?target=' + target)).json();
+    layout(g);
+    draw(g);
+}
+
+function onModeChange() {
+    resetAll();  // reloads the correct graph (vulnerable vs hardened)
+}
+
+function layout(g) {
+    POS = {};
+    const rowH = 60, laneGap = 26, agentX = 300, toolX = 560, startX = 70;
+    let y = 50;
+    const agentIds = g.agents.map(a => a.node_id);
+    let firstY = null, lastY = null;
+    g.agents.forEach(a => {
+        const tools = a.tool_ids || [];
+        const n = Math.max(1, tools.length);
+        const laneTop = y, laneH = n * rowH, cy = laneTop + laneH / 2;
+        POS[a.node_id] = { x: agentX, y: cy, type: 'agent' };
+        if (firstY === null) firstY = cy;
+        lastY = cy;
+        tools.forEach((tid, i) => POS[tid] = { x: toolX, y: laneTop + i * rowH + rowH / 2, type: 'tool' });
+        y = laneTop + laneH + laneGap;
+    });
+    // START / END on the left spine
+    g.nodes.filter(n => n.type === 'BASIC').forEach(n => {
+        POS[n.id] = { x: startX, y: (n.id === 'START' ? firstY : lastY), type: 'basic' };
+    });
+    GRAPHH = Math.max(300, y + 20);
+    document.getElementById('graph').setAttribute('viewBox', `0 0 ${GRAPHW} ${GRAPHH}`);
+}
+
+function line(x1,y1,x2,y2,cls) {
+    const l = document.createElementNS(SVG_NS,'line');
+    l.setAttribute('x1',x1); l.setAttribute('y1',y1); l.setAttribute('x2',x2); l.setAttribute('y2',y2);
+    l.setAttribute('stroke', cls==='red' ? '#E74C3C' : '#3a4a5e');
+    l.setAttribute('stroke-width', cls==='red' ? 3 : 1.4);
+    if (cls!=='red') l.setAttribute('stroke-dasharray','4,4');
+    return l;
+}
+
+function draw(g) {
+    const svg = document.getElementById('graph');
+    svg.innerHTML = '';
+    // ownership edges (agent -> tool) as faint dashed
+    g.agents.forEach(a => (a.tool_ids||[]).forEach(tid => {
+        if (POS[a.node_id] && POS[tid]) svg.appendChild(line(POS[a.node_id].x,POS[a.node_id].y,POS[tid].x,POS[tid].y,'own'));
+    }));
+    // workflow edges
+    g.edges.forEach(e => { if (POS[e.source] && POS[e.target]) svg.appendChild(line(POS[e.source].x,POS[e.source].y,POS[e.target].x,POS[e.target].y,'flow')); });
+    // nodes
+    g.nodes.forEach(n => { if (POS[n.id]) svg.appendChild(nodeEl(n)); });
+}
+
+function nodeEl(n) {
+    const p = POS[n.id];
+    const gEl = document.createElementNS(SVG_NS,'g');
+    gEl.setAttribute('id','node-'+n.id);
+    let shape;
+    if (n.type === 'AGENT') {
+        shape = document.createElementNS(SVG_NS,'rect');
+        shape.setAttribute('x',p.x-60); shape.setAttribute('y',p.y-20);
+        shape.setAttribute('width',120); shape.setAttribute('height',40); shape.setAttribute('rx',9);
+        shape.setAttribute('fill', n.grade==='F' ? '#E74C3C' : '#3f6f96');
+    } else if (n.type === 'BASIC') {
+        shape = document.createElementNS(SVG_NS,'circle');
+        shape.setAttribute('cx',p.x); shape.setAttribute('cy',p.y); shape.setAttribute('r',22);
+        shape.setAttribute('fill','#2e8b57');
+    } else {
+        shape = document.createElementNS(SVG_NS,'ellipse');
+        shape.setAttribute('cx',p.x); shape.setAttribute('cy',p.y);
+        shape.setAttribute('rx',80); shape.setAttribute('ry',22);
+        shape.setAttribute('fill', n.is_source ? '#c47f2a' : '#b9770e');
+    }
+    shape.setAttribute('stroke','#0f1620'); shape.setAttribute('stroke-width',2);
+    shape.setAttribute('class','node-shape');
+    gEl.appendChild(shape);
+
+    const label = document.createElementNS(SVG_NS,'text');
+    label.setAttribute('x',p.x); label.setAttribute('y', n.type==='AGENT'? p.y+4 : p.y-2);
+    label.setAttribute('text-anchor','middle'); label.setAttribute('fill','#fff');
+    label.setAttribute('font-size','10'); label.setAttribute('font-weight','600');
+    label.textContent = n.name.length>18 ? n.name.slice(0,17)+'…' : n.name;
+    gEl.appendChild(label);
+    if (n.type !== 'AGENT' && n.capabilities && n.capabilities.length) {
+        const cap = document.createElementNS(SVG_NS,'text');
+        cap.setAttribute('x',p.x); cap.setAttribute('y',p.y+11);
+        cap.setAttribute('text-anchor','middle'); cap.setAttribute('fill','#1a120a');
+        cap.setAttribute('font-size','8');
+        cap.textContent = n.capabilities.join(',');
+        gEl.appendChild(cap);
+    }
+    return gEl;
+}
+
+function hit(nodeId) {
+    const el = document.querySelector('#node-'+CSS.escape(nodeId)+' .node-shape');
+    if (el) { el.classList.add('node-hit'); el.setAttribute('stroke','#E74C3C'); el.setAttribute('stroke-width',4); }
+}
+
+function redPath(a,b){
+    if (POS[a] && POS[b]) document.getElementById('graph').appendChild(line(POS[a].x,POS[a].y,POS[b].x,POS[b].y,'red'));
+}
+
+function appendTo(id, html, isEmptyClear=true) {
+    const box = document.getElementById(id);
+    if (isEmptyClear) { const e = box.querySelector('.empty'); if (e) e.remove(); }
+    const d = document.createElement('div'); d.innerHTML = html; box.appendChild(d); box.scrollTop = box.scrollHeight;
+}
+
+async function loadPreset(kind) {
+    const p = await (await fetch('/console/presets')).json();
+    document.getElementById('ticket').value = p[kind] || '';
+}
+
+function resetAll() {
+    document.getElementById('trace').innerHTML = '<div class="empty">no activity yet</div>';
+    document.getElementById('victim').innerHTML = '<div class="empty">—</div>';
+    document.getElementById('c2').innerHTML = '<div class="empty">—</div>';
+    document.getElementById('verdict').className = 'verdict';
+    loadGraph();
+}
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+async function submitTicket() {
+    const ticket = document.getElementById('ticket').value.trim();
+    if (!ticket) return;
+    const mode = computeMode();
+    resetAll(); await sleep(50);
+    let res;
+    try {
+        res = await (await fetch('/console/submit', {method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ticket, mode})})).json();
+    } catch(e) { appendTo('trace', 'request failed: '+e); return; }
+
+    if (res.error) { appendTo('trace', '⚠️ '+res.error); return; }
+
+    const path = res.path_node_ids || [];
+    let prev = null, pathIdx = 0;
+    for (const ev of res.events) {
+        if (ev.node_id) {
+            hit(ev.node_id);
+            // draw the red path progressively along path_node_ids
+            if (path[pathIdx] === ev.node_id) {
+                if (prev) redPath(prev, ev.node_id);
+                prev = ev.node_id; pathIdx++;
+            }
+        }
+        if (ev.kind === 'llm') {
+            appendTo('trace',
+                `<div class="llm"><b>🧠 LLM response</b><pre>${escapeHtml(ev.effect || '')}</pre></div>`);
+        } else if (ev.kind === 'tool') {
+            const who = ev.actor ? `<b style="color:#5DADE2">${ev.actor}</b> ` : '';
+            appendTo('trace', `${who}<span class="toolcall">🔧 ${escapeHtml(ev.text)}</span>`);
+        } else {
+            const who = ev.actor && ev.actor !== 'llm' ? `<b style="color:#5DADE2">${ev.actor}</b> ` : '';
+            const tool = ev.tool ? `<span class="tool">▶ ${ev.tool}</span> ` : '';
+            const eff = ev.effect ? `<div class="effect">↳ ${escapeHtml(ev.effect)}</div>` : '';
+            appendTo('trace', `${who}${tool}${escapeHtml(ev.text)}${eff}`);
+        }
+        if (ev.panel) appendTo(ev.panel.target, escapeHtml(ev.panel.line));
+        await sleep(650);
+    }
+    const v = document.getElementById('verdict');
+    v.className = 'verdict ' + (res.severity === 'safe' ? 'safe' : 'pwned');
+    v.textContent = res.verdict || (res.compromised ? '🚨 AGENT COMPROMISED' : '✅ safe');
+}
+
+function escapeHtml(s){ return (s||'').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+async function loadInfo() {
+    try {
+        const info = await (await fetch('/console/info')).json();
+        document.getElementById('c2addr').innerHTML = `<b>server:</b> POST ${info.c2_url}`;
+    } catch (e) { /* ignore */ }
+}
+
+loadGraph();
+loadInfo();
+</script>
+</body>
+</html>

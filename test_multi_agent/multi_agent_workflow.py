@@ -125,10 +125,9 @@ def supervisor(state: AgentState) -> AgentState:
 
     # Log to database via MCP
     db_server = MCPDatabaseServer()
-    db_server.insert("activity_log", {
-        "agent": state.get("current_agent"),
-        "timestamp": "2024-03-11"
-    })
+    db_server.insert(
+        "activity_log", {"agent": state.get("current_agent"), "timestamp": "2024-03-11"}
+    )
 
     state["messages"].append("Supervisor logged activity")
     return state
@@ -157,7 +156,7 @@ def create_multi_agent_workflow():
         {
             "developer_agent": "developer_agent",
             "end": END,
-        }
+        },
     )
 
     workflow.add_conditional_edges(
@@ -166,7 +165,7 @@ def create_multi_agent_workflow():
         {
             "research_agent": "research_agent",
             "end": END,
-        }
+        },
     )
 
     return workflow.compile()
@@ -228,7 +227,7 @@ if __name__ == "__main__":
         "research_data": "",
         "code_output": "",
         "file_data": "",
-        "next_action": "start"
+        "next_action": "start",
     }
 
     # Run the workflow

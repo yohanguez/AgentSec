@@ -1,7 +1,8 @@
 import ast
-import yaml
 from pathlib import Path
 from typing import Dict, List
+
+import yaml
 
 from agentsec.analyzers.base import BaseAnalyzer
 from agentsec.models import (
@@ -52,10 +53,26 @@ class CrewAIAnalyzer(BaseAnalyzer):
             for call in agent_calls:
                 agent = self._extract_agent_from_call(call)
                 if agent:
+                    node_id = f"agent_{agent.name}"
+                    agent.node_id = node_id
+                    # Attribute the agent's tools (tools=[...]) as owned tool nodes.
+                    tool_ids = []
+                    for tname in self._extract_agent_tools(call):
+                        tid = f"tool_{tname}"
+                        if tid not in all_nodes:
+                            all_nodes[tid] = NodeDefinition(
+                                id=tid,
+                                name=tname,
+                                type=NodeType.TOOL,
+                                category=self._categorize_tool(tname),
+                                description=f"Tool: {tname}",
+                            )
+                        tool_ids.append(tid)
+                    agent.tool_ids = tool_ids
                     all_agents.append(agent)
                     # Add agent as node
                     node = NodeDefinition(
-                        id=f"agent_{agent.name}",
+                        id=node_id,
                         name=agent.name,
                         type=NodeType.AGENT,
                         description=f"CrewAI Agent: {agent.name}",
@@ -133,6 +150,23 @@ class CrewAIAnalyzer(BaseAnalyzer):
                 has_guardrails=False,
             )
         return None
+
+    def _extract_agent_tools(self, call: ast.Call) -> List[str]:
+        """Pull tool display names from an Agent(..., tools=[...]) call."""
+        names: List[str] = []
+        for kw in call.keywords:
+            if kw.arg == "tools" and isinstance(kw.value, (ast.List, ast.Tuple)):
+                for elt in kw.value.elts:
+                    if isinstance(elt, ast.Call):
+                        if isinstance(elt.func, ast.Name):
+                            names.append(elt.func.id)
+                        elif isinstance(elt.func, ast.Attribute):
+                            names.append(elt.func.attr)
+                    elif isinstance(elt, ast.Name):
+                        names.append(elt.id)
+                    elif isinstance(elt, ast.Attribute):
+                        names.append(elt.attr)
+        return names
 
     def _extract_tools_from_tree(self, tree: ast.AST) -> List[str]:
         tools = []
