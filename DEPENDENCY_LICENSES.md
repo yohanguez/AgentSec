@@ -1,6 +1,8 @@
 # Dependency Licenses
 
-This document lists all dependencies used by AgentSec and their licenses.
+Copyright THALES
+
+This document lists all dependencies used by AgentSec and their indicative licenses at the time of verification.
 
 ## Production Dependencies
 
