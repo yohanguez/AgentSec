@@ -1,11 +1,9 @@
 """Local AgentSec web dashboard (FastAPI).
 
 Unified dashboard, separate pages:
-  GET  /                  dashboard listing all scan + monitor runs
+  GET  /                  dashboard listing all scan runs
   GET  /scan/{id}         full interactive audit report for a static scan
-  GET  /monitor/{id}      runtime connection report
   POST /api/scan          {framework, path} -> run static audit -> {id}
-  POST /api/monitor       {duration}        -> run runtime monitor -> {id}
   GET  /api/scan/{id}     raw audited-graph JSON (CI/CD friendly)
 """
 
@@ -27,10 +25,6 @@ from agentsec.server.store import RunStore
 class ScanRequest(BaseModel):
     framework: str
     path: str
-
-
-class MonitorRequest(BaseModel):
-    duration: int = 15
 
 
 class ConsoleRequest(BaseModel):
@@ -95,15 +89,6 @@ def create_app(db_path: Optional[Path] = None) -> FastAPI:
         graph = GraphDefinition(**run["data"])
         return report_gen.render_html(graph)
 
-    @app.get("/monitor/{run_id}", response_class=HTMLResponse)
-    def monitor_page(run_id: str):
-        run = store.get(run_id)
-        if not run or run["kind"] != "monitor":
-            raise HTTPException(status_code=404, detail="monitor run not found")
-        return env.get_template("monitor.html").render(
-            run=run, summary=run["data"], version=__version__
-        )
-
     # ---------------------------------------------------------------- api
     @app.post("/api/scan")
     def api_scan(req: ScanRequest):
@@ -124,24 +109,6 @@ def create_app(db_path: Optional[Path] = None) -> FastAPI:
             framework=req.framework,
         )
         return {"id": run_id, "summary": summary, "url": f"/scan/{run_id}"}
-
-    @app.post("/api/monitor")
-    def api_monitor(req: MonitorRequest):
-        try:
-            from agentsec.monitor import NetworkMonitor
-        except ImportError:
-            raise HTTPException(status_code=500, detail="psutil not installed")
-        summary = NetworkMonitor().monitor(duration_seconds=req.duration)
-        run_id = store.add(
-            kind="monitor",
-            title=f"Runtime monitor ({req.duration}s)",
-            summary={
-                "connections": summary["total_connections"],
-                "services": len(summary["unique_services"]),
-            },
-            data=summary,
-        )
-        return {"id": run_id, "summary": summary, "url": f"/monitor/{run_id}"}
 
     @app.get("/api/scan/{run_id}")
     def api_get_scan(run_id: str):
