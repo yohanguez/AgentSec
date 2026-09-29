@@ -212,7 +212,6 @@ AgentSec/
 │   │                   #   reachability/taint, privilege scoring, detectors
 │   ├── report/         # HTML report + graph visualizer (red attack paths)
 │   ├── server/         # FastAPI dashboard + SQLite run store
-│   ├── mappers/        # Legacy vulnerability mapping
 │   ├── utils/          # AST parsing and file utilities
 │   ├── cli/            # Command-line interface (scan / serve)
 │   └── data/           # Capability + vulnerability databases
