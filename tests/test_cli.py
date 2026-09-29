@@ -144,23 +144,6 @@ class TestCLIServe:
         assert "port" in result.stdout.lower() or result.exit_code == 0
 
 
-class TestCLIMonitor:
-    """Tests for the monitor command."""
-
-    def test_monitor_help(self):
-        """Test monitor command help."""
-        result = runner.invoke(app, ["monitor", "--help"])
-        assert result.exit_code == 0
-        assert "monitor" in result.stdout.lower()
-
-    def test_monitor_requires_privileges(self):
-        """Test that monitor mentions privilege requirements."""
-        result = runner.invoke(app, ["monitor", "--help"])
-        # Help should mention sudo/root requirements
-        help_text = result.stdout.lower()
-        assert "sudo" in help_text or "root" in help_text or "privileges" in help_text
-
-
 class TestCLIMain:
     """Tests for main CLI application."""
 
@@ -189,7 +172,7 @@ class TestCLIMain:
 
     def test_all_commands_have_help(self):
         """Test that all commands have help."""
-        commands = ["scan", "serve", "monitor"]
+        commands = ["scan", "serve"]
 
         for cmd in commands:
             result = runner.invoke(app, [cmd, "--help"])

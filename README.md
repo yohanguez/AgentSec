@@ -42,8 +42,8 @@ cd AgentSec
 # Core (static audit + HTML/JSON reports)
 pip install -e .
 
-# With the runtime monitor and web dashboard
-pip install -e ".[all]"      # or: ".[monitor]" / ".[server]"
+# With the web dashboard
+pip install -e ".[all]"      # or: ".[server]"
 ```
 
 ## 📖 Quick Start
@@ -57,9 +57,6 @@ agentsec scan langgraph -i ./my-project --export-graph-json -o audit.json
 
 # Launch the local dashboard (unified view of all runs)
 agentsec serve                      # http://localhost:8000
-
-# Observe live AI/LLM network traffic (needs sudo on macOS/Linux)
-sudo agentsec monitor --duration 30
 ```
 
 Try the bundled demo — an intentionally insecure incident-response crew that
@@ -75,7 +72,6 @@ agentsec scan langgraph -i demo/autoops -o report.html
 |---------|---------|
 | `agentsec scan <framework> -i <dir>` | Static privilege/agency audit → HTML or JSON |
 | `agentsec serve` | Local web dashboard (SQLite-backed run history) |
-| `agentsec monitor` | Runtime AI-connection observation (psutil) |
 
 ### Supported Frameworks
 
@@ -216,10 +212,9 @@ AgentSec/
 │   │                   #   reachability/taint, privilege scoring, detectors
 │   ├── report/         # HTML report + graph visualizer (red attack paths)
 │   ├── server/         # FastAPI dashboard + SQLite run store
-│   ├── monitor/        # Runtime AI-connection monitor (psutil)
 │   ├── mappers/        # Legacy vulnerability mapping
 │   ├── utils/          # AST parsing and file utilities
-│   ├── cli/            # Command-line interface (scan / serve / monitor)
+│   ├── cli/            # Command-line interface (scan / serve)
 │   └── data/           # Capability + vulnerability databases
 ├── demo/autoops/       # Intentionally insecure demo workflow
 ├── examples/           # Example workflows

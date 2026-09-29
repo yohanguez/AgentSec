@@ -132,22 +132,6 @@ def _print_summary(graph) -> None:
 
 
 @app.command()
-def monitor(
-    duration: int = typer.Option(30, "--duration", "-d", help="Seconds to observe"),
-    output_file: Optional[Path] = typer.Option(
-        None, "--output-file", "-o", help="Write the JSON summary here"
-    ),
-):
-    """Observe live network connections and flag runtime AI/LLM traffic."""
-    try:
-        from agentsec.monitor import monitor_network
-    except ImportError:
-        typer.echo("❌ Runtime monitor requires psutil: pip install agentsec[monitor]", err=True)
-        raise typer.Exit(1)
-    monitor_network(duration=duration, output_file=output_file)
-
-
-@app.command()
 def serve(
     host: str = typer.Option("127.0.0.1", "--host"),
     port: int = typer.Option(8000, "--port", "-p"),
